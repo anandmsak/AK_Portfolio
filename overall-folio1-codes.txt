@@ -1,0 +1,3405 @@
+//upto current updated all codes 22/06/2026 (02:52 pm)
+tree .\src /F /A > project_tree.txt   
+[C:\Users\ak272\Desktop\ak-portfolio
+│   .gitignore
+│   package-lock.json
+│   package.json
+│
+└───silicon-portfolio
+    │   .gitignore
+    │   eslint.config.js
+    │   index.html
+    │   package-lock.json
+    │   package.json
+    │   postcss.config.js
+    │   README.md
+    │   tailwind.config.js
+    │   vite.config.js
+    │
+    ├───public
+    │   │   favicon.svg
+    │   │   icons.svg
+    │   │
+    │   └───models
+    │           chip.glb
+    │
+    └───src
+        │   hero.png
+        │   react.svg
+        │   Resume-Anandha_Krishnan.pdf
+        │   main.jsx
+        │
+        ├───assets
+        │   └───images
+        │           air_quality_prediction_img.png
+        │           air_quality_prediction_img1.png
+        │           cert_aicte.jpg
+        │           cert_creative_caster.jpg
+        │           cert_deloitte_cyber.jpg
+        │           cert_deloitte_job.jpg
+        │           cert_encoder_decoder.jpg
+        │           cert_excel_skills.jpg
+        │           cert_excel_tips.jpg
+        │           cert_genai_xai.jpg
+        │           cert_ibm_ai.jpg
+        │           cert_ieee_aimla.jpg
+        │           cert_iot_nptel.jpg
+        │           cert_iot_workshop.jpg
+        │           cert_nielit.jpg
+        │           cert_paper_waste.jpg
+        │           cert_think_simulate.jpg
+        │           hero-bg.jpg
+        │           images.txt
+        │           prism_img1.jpg
+        │           prism_img2.jpg
+        │           prism_img3.png
+        │           prism_img4.png
+        │           profile.jpg
+        │           r2v_img.png
+        │           r2v_img1.png
+        │           r2v_img2.png
+        │           r2v_img3.png
+        │           r2v_img4.png
+        │           s2c_img.png
+        │           s2c_img1.png
+        │           s2c_img2.png
+        │           s2c_img3.png
+        │           s2c_img4.png
+        │           s2c_img5.png
+        │           s2c_img6.jpg
+        │           s2c_img7.jpg
+        │           smart_eye_img.png
+        │           smart_eye_img2.jpg
+        │           smart_waste_img1.jpg
+        │
+        ├───components
+        │   │   VerificationMethodology.jsx
+        │   │
+        │   ├───3d
+        │   │       ChipModel.jsx
+        │   │       SiliconScene.jsx
+        │   │
+        │   ├───animations
+        │   │       Reveal.jsx
+        │   │
+        │   ├───layout
+        │   │       Footer.jsx
+        │   │       Navbar.jsx
+        │   │
+        │   └───ui
+        │           Button.jsx
+        │           CursorTrail.jsx
+        │           GlassCard.jsx
+        │           ImageModal.jsx
+        │           ParticleField.jsx
+        │           PCBBackground.jsx
+        │           SectionTitle.jsx
+        │
+        ├───data
+        │       achievements.js
+        │       certifications.js
+        │       projects.js
+        │       skills.js
+        │
+        ├───hooks
+        │       useScroll.js
+        │
+        ├───sections
+        │       About.jsx
+        │       Achievements.jsx
+        │       Certifications.jsx
+        │       Contact.jsx
+        │       Education.jsx
+        │       Experience.jsx
+        │       Hero.jsx
+        │       Projects.jsx
+        │       Research.jsx
+        │       Resume.jsx
+        │       Skills.jsx
+        │
+        └───styles
+                globals.css
+]
+codes {
+
+##########
+C:\Users\ak272\Desktop\ak-portfolio\silicon-portfolio\src\components\3d\ChipModel.jsx
+ChipModel.jsx[import { useRef, useState, useEffect, useMemo } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import { useGLTF } from "@react-three/drei";
+import * as THREE from "three";
+
+function MyCustomGlbChip() {
+  const glbRef = useRef();
+  const { gl, camera, controls } = useThree(); // ◄─── Accessing camera and orbit controls directly
+  const [isInteracting, setIsInteracting] = useState(false);
+  const lastInteractionTime = useRef(0);
+
+  // Load your custom portfolio asset file
+  const { scene } = useGLTF("/models/chip.glb");
+
+  // Capturing your precise first-load screenshot values as the forced defaults
+  const defaultCameraPos = useMemo(() => new THREE.Vector3(0, 3.5, 9), []);
+  const defaultControlsTarget = useMemo(() => new THREE.Vector3(0, 0, 0), []);
+  
+  const defaultPosition = useMemo(() => new THREE.Vector3(2.8, -0.2, -0.8), []);
+  const defaultRotation = useMemo(() => new THREE.Euler(0, 0, 0), []);
+  const defaultScale = useMemo(() => new THREE.Vector3(1.3, 1.3, 1.3), []);
+
+  // Track pointer interaction across the window canvas
+  useEffect(() => {
+    const handleStart = () => {
+      setIsInteracting(true);
+      lastInteractionTime.current = performance.now();
+    };
+    const handleEnd = () => {
+      setIsInteracting(false);
+      lastInteractionTime.current = performance.now();
+    };
+
+    const dom = gl.domElement;
+    dom.addEventListener("pointerdown", handleStart);
+    window.addEventListener("pointerup", handleEnd);
+
+    return () => {
+      dom.removeEventListener("pointerdown", handleStart);
+      window.removeEventListener("pointerup", handleEnd);
+    };
+  }, [gl]);
+
+  useFrame(({ clock }, delta) => {
+    if (!glbRef.current) return;
+
+    const currentTime = performance.now();
+    const timeSinceLastInteraction = (currentTime - lastInteractionTime.current) / 1000;
+
+    // IF USER IS ZOOMING/ROTATING: Pause our system resetting loops
+    if (isInteracting) {
+      return;
+    }
+
+    // IF 3 SECONDS OF IDLE TIME PASS: Smoothly animate everything back to home defaults
+    if (timeSinceLastInteraction >= 3) {
+      const t = delta * 1.5; // Deliberate smooth 3-second easing rate
+
+      // 1. Zoom back to default: Force Camera position and target to reset smoothly
+      camera.position.lerp(defaultCameraPos, t);
+      if (controls) {
+        controls.target.lerp(defaultControlsTarget, t);
+      }
+
+      // 2. Mesh scale and position recovery matching initial defaults
+      glbRef.current.position.lerp(defaultPosition, t);
+      glbRef.current.scale.lerp(defaultScale, t);
+
+      // 3. Rotational recovery slerp
+      const currentQuaternion = glbRef.current.quaternion;
+      const targetQuaternion = new THREE.Quaternion().setFromEuler(defaultRotation);
+      currentQuaternion.slerp(targetQuaternion, t);
+      
+    } else {
+      // STANDARD IDLE ROTATION
+      glbRef.current.rotation.y += delta * 0.15;
+      glbRef.current.rotation.x = Math.sin(clock.elapsedTime * 0.1) * 0.03;
+    }
+  });
+
+  // Optimize material parameters
+  scene.traverse((child) => {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+      if (child.material) {
+        if (child.material.name.toLowerCase().includes("gold") || child.material.name.toLowerCase().includes("pin")) {
+          child.material.metalness = 1.0;
+          child.material.roughness = 0.08;
+        }
+        if (child.material.name.toLowerCase().includes("neon") || child.material.name.toLowerCase().includes("emit")) {
+          child.material.emissiveIntensity = 4.0;
+        }
+      }
+    }
+  });
+
+  return <primitive ref={glbRef} object={scene} />;
+}
+
+useGLTF.preload("/models/chip.glb");
+
+export default function ChipModel() {
+  return <MyCustomGlbChip />;
+}], 
+
+SiliconScene.jsx[/**
+ * SiliconScene.jsx
+ * Re-created production bundle wrapper.
+ * Houses the canvas engine context and starry backdrop for your custom asset.
+ */
+
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls, Environment, Sparkles, Stars } from "@react-three/drei";
+import { Suspense, useRef } from "react";
+import ChipModel from "./ChipModel";
+
+function SceneLights() {
+  return (
+    <>
+      <ambientLight intensity={0.25} />
+      <pointLight position={[0, 8, 0]}   color="#00f5ff" intensity={5}  distance={22} />
+      <pointLight position={[-7, 4, -5]} color="#7c3aed" intensity={3}  distance={18} />
+      <pointLight position={[7, 2, -5]}  color="#f59e0b" intensity={3}  distance={18} />
+      <spotLight position={[0, 12, 2]}   angle={0.3} penumbra={0.9} intensity={4} color="#00f5ff" />
+    </>
+  );
+}
+
+// Handles smooth subtle mouse tracking across the entire screen backdrop layout
+function CameraController() {
+  useFrame(({ camera, pointer }) => {
+    camera.position.x += (pointer.x * 1.2 - camera.position.x) * 0.025;
+    camera.position.y += (pointer.y * 0.6 + 2.0 - camera.position.y) * 0.025;
+    camera.lookAt(0, 0, 0);
+  });
+  return null;
+}
+
+export default function SiliconScene() {
+  return (
+    <Canvas
+      camera={{ position: [0, 3.5, 9], fov: 42 }}
+      style={{ background: "transparent" }}
+      gl={{ antialias: true, alpha: true }}
+      dpr={[1, 1.5]}
+    >
+      <Suspense fallback={null}>
+        <SceneLights />
+        <Environment preset="night" />
+
+        {/* Ambient background spatial design elements */}
+        <Stars radius={90} depth={45} count={2000} factor={3.5} saturation={0} fade />
+        <Sparkles count={50} scale={12} size={1.2} speed={0.2} color="#00f5ff" opacity={0.3} />
+
+        {/* Your custom auto-reset GLB model component */}
+        <ChipModel />
+
+        {/* System perspective view tracking parameters */}
+        <CameraController />
+
+        <OrbitControls
+          enableZoom={false} // Restored so users can scroll-zoom it
+          enablePan={false}
+          maxPolarAngle={Math.PI / 1.7}
+          minPolarAngle={Math.PI / 3.5}
+          enableDamping
+          dampingFactor={0.05}
+        />
+      </Suspense>
+    </Canvas>
+  );
+}],
+
+
+###########
+
+
+C:\Users\ak272\Desktop\ak-portfolio\silicon-portfolio\src\components\animations\Reveal.jsx
+Reveal.jsx[import { motion } from "framer-motion";
+
+export default function Reveal({ children, delay = 0, direction = "up" }) {
+  const directions = {
+    up:    { initial: { opacity: 0, y: 40 },  animate: { opacity: 1, y: 0 } },
+    down:  { initial: { opacity: 0, y: -40 }, animate: { opacity: 1, y: 0 } },
+    left:  { initial: { opacity: 0, x: -40 }, animate: { opacity: 1, x: 0 } },
+    right: { initial: { opacity: 0, x: 40 },  animate: { opacity: 1, x: 0 } },
+    fade:  { initial: { opacity: 0 },          animate: { opacity: 1 } },
+  };
+
+  const { initial, animate } = directions[direction] || directions.up;
+
+  return (
+    <motion.div
+      initial={initial}
+      whileInView={animate}
+      transition={{ duration: 0.7, delay, ease: "easeOut" }}
+      viewport={{ once: true, margin: "-60px" }}
+    >
+      {children}
+    </motion.div>
+  );
+}],
+
+
+C:\Users\ak272\Desktop\ak-portfolio\silicon-portfolio\src\components\layout\Footer.jsx
+Footer.jsx[export default function Footer() {
+  return (
+    <footer className="border-t border-white/10 py-10 px-6 mt-20">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+
+        <div className="text-center md:text-left">
+          <p className="font-mono text-cyan-400 text-sm font-bold tracking-widest">
+            ANANDHA KRISHNAN P
+          </p>
+          <p className="text-gray-500 text-xs mt-1 font-mono">
+            VLSI · RTL Design · Embedded Systems · AI Hardware
+          </p>
+          <p className="text-gray-600 text-xs mt-2 italic">
+            "Building the next generation of intelligent silicon systems."
+          </p>
+        </div>
+
+        <div className="flex gap-6 text-gray-500 text-xs font-mono">
+          <a href="https://www.linkedin.com/in/anandha-krishnan-vlsi" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-400 transition-colors">LinkedIn</a>
+          <a href="https://github.com/anandmsak" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-400 transition-colors">GitHub</a>
+          <a href="mailto:anandhperumal27@gmail.com" className="hover:text-cyan-400 transition-colors">Email</a>
+        </div>
+
+        <p className="text-gray-600 text-xs font-mono">
+          © {new Date().getFullYear()} Anandha Krishnan P
+        </p>
+      </div>
+    </footer>
+  );
+}],
+Navbar.jsx[import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+
+const navLinks = [
+  { name: "About",        href: "#about" },
+  { name: "Skills",       href: "#skills" },
+  { name: "Projects",     href: "#projects" },
+  { name: "Research",     href: "#research" },
+  { name: "Achievements", href: "#achievements" },
+  { name: "Contact",      href: "#contact" },
+];
+
+export default function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <motion.nav
+      initial={{ y: -80, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className={`fixed left-0 w-full z-50 transition-all duration-500 ${
+        scrolled
+          ? "bg-black/60 backdrop-blur-xl border-b border-white/8 shadow-lg"
+          : "bg-transparent"
+      }`}
+      style={{ top: "8px" }}
+    >
+      <div
+        className="max-w-7xl mx-auto flex justify-between items-center"
+        style={{ padding: "10px 10px 10px 24px" }}
+      >
+        {/* Brand — left */}
+        <a href="#hero" className="flex items-center gap-2 shrink-0 group">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 pulse-glow" />
+          <span
+            className="text-[13px] font-bold tracking-[0.18em] text-cyan-400"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            ANANDHA KRISHNAN
+          </span>
+          <span
+            className="text-[13px] font-bold tracking-[0.18em] text-white/40"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            // SILICON LAB
+          </span>
+        </a>
+
+        {/* Desktop nav — strictly right, control-panel style boxes */}
+        <div className="hidden md:flex items-center" style={{ gap: "6px", paddingRight: "10px" }}>
+          {navLinks.map((link) => (
+            <a
+              key={link.name}
+              href={link.href}
+              style={{ fontFamily: "var(--font-mono)" }}
+              className="
+                text-[11px] tracking-[0.12em] text-gray-400 uppercase
+                px-3 py-[6px] border border-white/12 rounded-[4px]
+                hover:border-cyan-400/50 hover:text-cyan-400 hover:bg-cyan-400/5
+                transition-all duration-200
+              "
+            >
+              {link.name}
+            </a>
+          ))}
+
+          {/* HIRE ME — accent control button */}
+          <a
+            href="#contact"
+            style={{ fontFamily: "var(--font-mono)", marginLeft: "4px" }}
+            className="
+              text-[11px] tracking-[0.15em] font-semibold uppercase
+              px-4 py-[6px] rounded-[4px]
+              border border-cyan-400/70 text-cyan-400
+              hover:bg-cyan-400/12 hover:border-cyan-400
+              transition-all duration-200
+            "
+          >
+            HIRE ME
+          </a>
+        </div>
+
+        {/* Mobile toggle */}
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="md:hidden flex flex-col gap-1.5 p-2"
+          aria-label="Toggle menu"
+        >
+          <span className={`block w-5 h-0.5 bg-cyan-400 transition-all duration-300 ${menuOpen ? "rotate-45 translate-y-2" : ""}`} />
+          <span className={`block w-5 h-0.5 bg-cyan-400 transition-all duration-300 ${menuOpen ? "opacity-0" : ""}`} />
+          <span className={`block w-5 h-0.5 bg-cyan-400 transition-all duration-300 ${menuOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+        </button>
+      </div>
+
+      {/* Mobile dropdown */}
+      {menuOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="md:hidden glass mx-4 mb-4 rounded-xl p-4"
+        >
+          {navLinks.map((link) => (
+            <a
+              key={link.name}
+              href={link.href}
+              onClick={() => setMenuOpen(false)}
+              style={{ fontFamily: "var(--font-mono)" }}
+              className="block py-3 text-sm text-gray-300 hover:text-cyan-400 tracking-wide border-b border-white/10 last:border-0 transition-colors uppercase"
+            >
+              {link.name}
+            </a>
+          ))}
+          <a
+            href="#contact"
+            onClick={() => setMenuOpen(false)}
+            style={{ fontFamily: "var(--font-mono)" }}
+            className="block mt-3 py-2 text-center text-sm font-semibold text-cyan-400 border border-cyan-400/40 rounded-lg hover:bg-cyan-400/10 transition-all uppercase tracking-widest"
+          >
+            HIRE ME
+          </a>
+        </motion.div>
+      )}
+    </motion.nav>
+  );
+}],
+######
+
+
+C:\Users\ak272\Desktop\ak-portfolio\silicon-portfolio\src\components\ui\Button.jsx
+Button.jsx[export default function Button({ children, variant = "primary", href, onClick, className = "" }) {
+  const base = "inline-flex items-center gap-2 px-6 py-3 rounded-xl font-mono text-sm font-semibold transition-all duration-300";
+
+  const variants = {
+    primary: "bg-cyan-400 text-black hover:bg-cyan-300 hover:shadow-lg hover:shadow-cyan-400/30",
+    outline: "border border-white/30 text-white hover:border-cyan-400 hover:text-cyan-400 hover:bg-cyan-400/5",
+    ghost:   "text-cyan-400 hover:bg-cyan-400/10",
+  };
+
+  const cls = `${base} ${variants[variant]} ${className}`;
+
+  if (href) return <a href={href} className={cls} target={href.startsWith("http") ? "_blank" : "_self"} rel="noopener noreferrer">{children}</a>;
+  return <button onClick={onClick} className={cls}>{children}</button>;
+}],
+
+CursorTrail.jsx[import { useEffect, useRef } from "react";
+
+export default function CursorTrail() {
+  const dotRef = useRef(null);
+  const ringRef = useRef(null);
+
+  useEffect(() => {
+    const dot = dotRef.current;
+    const ring = ringRef.current;
+    let mouseX = 0, mouseY = 0;
+    let ringX = 0, ringY = 0;
+
+    const onMove = (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      dot.style.left = mouseX - 4 + "px";
+      dot.style.top = mouseY - 4 + "px";
+    };
+
+    const animate = () => {
+      ringX += (mouseX - ringX) * 0.12;
+      ringY += (mouseY - ringY) * 0.12;
+      ring.style.left = ringX - 16 + "px";
+      ring.style.top = ringY - 16 + "px";
+      requestAnimationFrame(animate);
+    };
+
+    window.addEventListener("mousemove", onMove);
+    animate();
+    return () => window.removeEventListener("mousemove", onMove);
+  }, []);
+
+  return (
+    <>
+      <div ref={dotRef} className="cursor-dot" />
+      <div ref={ringRef} className="cursor-ring" />
+    </>
+  );
+}],
+GlassCard.jsx[import { motion } from "framer-motion";
+
+export default function GlassCard({ children, className = "", glowColor = null }) {
+  return (
+    <motion.div
+      whileHover={{
+        y: -4,
+        boxShadow: glowColor
+          ? `0 20px 50px ${glowColor}12`
+          : "0 20px 50px rgba(0,0,0,0.4), 0 0 1px rgba(0,245,255,0.1)",
+      }}
+      transition={{ type: "spring", stiffness: 280, damping: 24 }}
+      className={`transition-all duration-300 ${className}`}
+      style={{
+        background: "rgba(255,255,255,0.04)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        border: "1px solid rgba(255,255,255,0.09)",
+        borderRadius: "16px",
+        padding: "1.25rem",
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+}],
+ImageModal.jsx[import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+
+export default function ImageModal({ src, alt, projectImages = [], setActiveZoomImage, onClose }) {
+  // Synchronize internal index tracker with whichever image was clicked initially
+  const initialIndex = projectImages.indexOf(src);
+  const [currentIndex, setCurrentIndex] = useState(initialIndex !== -1 ? initialIndex : 0);
+
+  // Touch gesture state registers for mobile phone swiping
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  // Minimum pixel distance required to register a swipe event
+  const minSwipeDistance = 50;
+
+  const handleNext = () => {
+    if (projectImages.length <= 1) return;
+    const nextIdx = (currentIndex + 1) % projectImages.length;
+    setCurrentIndex(nextIdx);
+    setActiveZoomImage({ src: projectImages[nextIdx], alt: alt, images: projectImages, index: nextIdx });
+  };
+
+  const handlePrev = () => {
+    if (projectImages.length <= 1) return;
+    const prevIdx = (currentIndex - 1 + projectImages.length) % projectImages.length;
+    setCurrentIndex(prevIdx);
+    setActiveZoomImage({ src: projectImages[prevIdx], alt: alt, images: projectImages, index: prevIdx });
+  };
+
+  // Keyboard Event Registry Handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") handleNext();
+      if (e.key === "ArrowLeft") handlePrev();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentIndex, projectImages]);
+
+  // Mobile Touch Acceleration Vector Calculators
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) handleNext();
+    if (isRightSwipe) handlePrev();
+  };
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl p-4 cursor-zoom-out"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <div className="relative max-w-5xl w-full h-[80vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+          
+          {/* Main Viewer Frame Display Node */}
+          <motion.img
+            key={currentIndex}
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            transition={{ type: "spring", damping: 25 }}
+            src={projectImages[currentIndex] || src}
+            alt={alt}
+            className="max-w-full max-h-full object-contain rounded-xl border border-white/10 shadow-2xl mix-blend-screen"
+          />
+
+          {/* Desktop Overlay UI Indicator Arrows */}
+          {projectImages.length > 1 && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); handlePrev(); }}
+                className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-slate-950/60 border border-white/10 hover:border-cyan-400 text-gray-400 hover:text-cyan-400 font-mono rounded-full items-center justify-center transition-all cursor-pointer shadow-lg"
+              >
+                ◀
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); handleNext(); }}
+                className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-slate-950/60 border border-white/10 hover:border-cyan-400 text-gray-400 hover:text-cyan-400 font-mono rounded-full items-center justify-center transition-all cursor-pointer shadow-lg"
+              >
+                ▶
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Diagnostic Bottom Status Panel HUD bar */}
+        <div className="mt-6 font-mono text-[10px] text-gray-500 flex items-center gap-6 relative z-10 select-none" onClick={(e) => e.stopPropagation()}>
+          <span>HUD_FRAME_REGISTER: [0x0{currentIndex + 1} / 0x0{projectImages.length}]</span>
+          <span className="hidden sm:inline text-gray-600">// USE LEFT/RIGHT KEYS OR TOUCH SWIPE</span>
+          <button 
+            onClick={onClose} 
+            className="text-gray-400 hover:text-cyan-400 border border-white/10 bg-white/5 px-3 py-1 rounded transition-colors cursor-pointer text-[9px]"
+          >
+            ✕ TERMINATE_VIEW
+          </button>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}],
+ParticleField.jsx[import { useEffect, useRef } from "react";
+
+export default function ParticleField() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    let animId;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    const particles = Array.from({ length: 60 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      r: Math.random() * 1.5 + 0.5,
+      color: Math.random() > 0.5 ? "#00f5ff" : "#f59e0b",
+      alpha: Math.random() * 0.5 + 0.2,
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color + Math.floor(p.alpha * 255).toString(16).padStart(2, "0");
+        ctx.fill();
+      });
+
+      // Draw connecting lines
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(0,245,255,${0.08 * (1 - dist / 120)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+
+      animId = requestAnimationFrame(draw);
+    };
+
+    draw();
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 pointer-events-none z-0"
+      style={{ opacity: 0.4 }}
+    />
+  );
+}],
+PCBBackground.jsx[export default function PCBBackground() {
+  return (
+    <svg
+      className="fixed inset-0 w-full h-full pointer-events-none z-0"
+      style={{ opacity: 0.04 }}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <pattern id="pcb-grid" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+          <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#00f5ff" strokeWidth="0.5" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#pcb-grid)" />
+
+      {/* Horizontal traces */}
+      {[120, 240, 380, 500, 650, 780].map((y, i) => (
+        <line
+          key={`h${i}`}
+          x1="0" y1={y} x2="100%" y2={y}
+          stroke="#00f5ff" strokeWidth="0.8"
+          strokeDasharray="40 20 10 20"
+          style={{
+            animation: `traceAnim ${4 + i * 0.7}s ease-in-out infinite`,
+            animationDelay: `${i * 0.5}s`,
+          }}
+        />
+      ))}
+
+      {/* Vertical traces */}
+      {[150, 320, 500, 680, 860].map((x, i) => (
+        <line
+          key={`v${i}`}
+          x1={x} y1="0" x2={x} y2="100%"
+          stroke="#f59e0b" strokeWidth="0.6"
+          strokeDasharray="30 30"
+          style={{
+            animation: `traceAnim ${5 + i * 0.6}s ease-in-out infinite`,
+            animationDelay: `${i * 0.8}s`,
+          }}
+        />
+      ))}
+
+      {/* Via dots */}
+      {[[150,120],[320,240],[500,380],[680,500],[860,650],[150,500],[500,120]].map(([x,y],i) => (
+        <circle key={`via${i}`} cx={x} cy={y} r="3" fill="none" stroke="#00f5ff" strokeWidth="1" opacity="0.6" />
+      ))}
+    </svg>
+  );
+}],
+SectionTitle.jsx[import Reveal from "../animations/Reveal";
+
+export default function SectionTitle({ label, title, subtitle }) {
+  return (
+    <Reveal>
+      <div className="mb-14">
+        {label && (
+          <p className="font-mono text-[10px] text-cyan-400/60 tracking-[0.4em] uppercase mb-3">
+            // {label}
+          </p>
+        )}
+
+        <h2
+          className="font-bold leading-tight"
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: "clamp(36px, 4vw, 52px)",
+            letterSpacing: "-0.02em",
+            color: "#f1f5f9",
+          }}
+        >
+          {title}
+        </h2>
+
+        {subtitle && (
+          <p
+            className="mt-4 text-gray-400 leading-relaxed"
+            style={{ fontSize: "15px", maxWidth: "560px" }}
+          >
+            {subtitle}
+          </p>
+        )}
+
+        {/* Decorative underline trio */}
+        <div className="flex items-center gap-2 mt-6">
+          <div className="h-px w-14 bg-cyan-400 rounded" />
+          <div className="h-px w-5 bg-cyan-400/35 rounded" />
+          <div className="h-px w-2 bg-cyan-400/15 rounded" />
+        </div>
+      </div>
+    </Reveal>
+  );
+}], 
+######
+C:\Users\ak272\Desktop\ak-portfolio\silicon-portfolio\src\data
+achievements.js[export const achievements = [
+  {
+    title: "1st Prize — Project Expo",
+    detail: "Smart Eye real-time crowd monitoring system",
+    org: "Mahendra Engineering College",
+    year: "2025",
+    type: "award",
+  },
+  {
+    title: "2nd Prize — Paper Presentation",
+    detail: "SCIENSEA 2K25 technical paper",
+    org: "Kongu Engineering College",
+    year: "2025",
+    type: "award",
+  },
+  {
+    title: "Smart India Hackathon 2025",
+    detail: "Smart Waste Segregation & Monitoring System — college-level selection",
+    org: "Government of India",
+    year: "2025",
+    type: "hackathon",
+  },
+  {
+    title: "Medha'26 National Hackathon",
+    detail: "PRISM SAFE 2.0 — Predictive crowd risk intelligence system",
+    org: "Medha'26",
+    year: "2026",
+    type: "hackathon",
+  },
+  {
+    title: "IEEE AIMLA 2026",
+    detail: "Research Presentation — Climate-Induced Variations in Plant Leaf Diseases Detection",
+    org: "IEEE",
+    year: "2026",
+    type: "research",
+  },
+  {
+    title: "2nd Prize — Paper Presentation",
+    detail: "Smart Waste Segregation System",
+    org: "Kongu Engineering College",
+    year: "2025",
+    type: "award",
+  },
+];],
+certifications.js[export const certifications = [
+  {
+    title: "Artificial Intelligence and Data Analytics (Green Skills)",
+    org: "AICTE | Shell India | Edunet Foundation",
+    year: "2025",
+    skills: ["Artificial Intelligence", "Data Analytics", "Green Skills", "Predictive Modeling", "Sustainability Metrics"],
+    credentialId: "STU6876963de4cf81752602173",
+    description: "Completed an intensive 4-week virtual engineering internship focused on AI applications and data analytics inside green-technology sectors. Engineered predictive analytical models designed to trace sustainability parameters and optimize carbon resource allocation.",
+    link: "#",
+  },
+  {
+    title: "AI for Sustainability Virtual Internship",
+    org: "1M1B | AICTE | IBM SkillsBuild",
+    year: "2025 - 2026",
+    skills: ["Agentic AI", "Retrieval-Augmented Generation (RAG)", "Responsible AI", "Sustainability Engine Design", "UN SDGs Optimization"],
+    credentialId: "INTERNSHIP_17630914316916a3e755254",
+    description: "Successfully built and evaluated Agentic AI systems alongside Retrieval-Augmented Generation (RAG) frameworks to target global sustainability metrics aligned with the United Nations Sustainable Development Goals (SDGs). Implemented responsible AI architectures to optimize real-world climate datasets.",
+    link: "#",
+  },
+  {
+    title: "Certificate of Presentation – IEEE AIMLA 2026",
+    org: "IEEE | K.S. Rangasamy College of Technology",
+    year: "2026",
+    skills: ["Manuscript Presentation", "Honey Badger Algorithm", "Plant Leaf Disease Detection", "Climate Variations"],
+    credentialId: "KSRCT0426ECINCC026",
+    description: "Successfully submitted, peer-reviewed, and presented an advanced research manuscript titled 'Climate-Induced Variations in Plant Leaf Diseases: Optimized Detection Using Honey Badger Algorithm' at the Fourth International Conference on Artificial Intelligence and Machine Learning Applications (AIMLA 2026).",
+    link: "#",
+  },
+  {
+    title: "Introduction to Internet of Things",
+    org: "NPTEL | IIT Kharagpur | Skill India",
+    year: "2026",
+    skills: ["IoT Architecture", "Proctored Examination", "Microcontrollers", "Hardware Logic System"],
+    credentialId: "NPTEL26CS37S764901046",
+    description: "Achieved an Elite Certification status with a consolidated score of 83% (23.35/25 on assignments, 60/75 on the final proctored exam) in a rigorous 12-week core electronics hardware curriculum funded by the Ministry of Education, Government of India.",
+    link: "#",
+  },
+  {
+    title: "Embedded Systems for Beginners",
+    org: "NIELIT Calicut",
+    year: "2025",
+    skills: ["Embedded C", "Microcontrollers", "Register Masking Logic", "Hardware Driver Interfacing"],
+    credentialId: "OLC 36278",
+    description: "Completed formal firmware engineering tracking certification protocols under the National Institute of Electronics and Information Technology (NIELIT) Calicut, specializing in micro-controller compilation scripts and clock speed cycles alignment configurations.",
+    link: "#",
+  },
+  {
+    title: "Encoder-Decoder Architecture",
+    org: "Google Cloud | Simplilearn SkillUp",
+    year: "2025",
+    skills: ["Google Cloud Vertex AI", "Sequence-to-Sequence Modeling", "Neural Attention Matrices", "Deep Learning"],
+    credentialId: "8869205",
+    description: "Successfully certified in advanced deep learning sequences execution pipelines under Google Cloud's official endorsement platform framework. Modelled deep structural layers tracking neural network multi-head parameters processing systems.",
+    link: "#",
+  },
+  {
+    title: "IoT and Embedded System Workshop",
+    org: "Top Engineers | Mahendra Engineering College",
+    year: "2025",
+    skills: ["IoT Protocol Infrastructure", "ESP32 Peripherals", "IIT Madras Research Park", "Sensor Networks"],
+    credentialId: "PROFENTIAL-TE-WS25",
+    description: "Completed specialized field workshop protocols conducted at the IIT Madras Research Park venue by Top Engineers India. Programmed hardware telemetry streams bridging sensory circuit grids directly onto real-time wireless servers.",
+    link: "#",
+  },
+  {
+    title: "Deloitte Technology Job Simulation",
+    org: "Deloitte | Forage",
+    year: "2025",
+    skills: ["Software Coding", "System Development Architecture", "Technology Architecture Consulting"],
+    credentialId: "d3dLQJKmFuiKx6A46",
+    description: "Completed real-world software simulation modules managed through Forage tech platforms. Designed enterprise-level logical software code trees and evaluated platform architecture maps to match business registry client metrics.",
+    link: "#",
+  },
+  {
+    title: "Deloitte Cyber Job Simulation",
+    org: "Deloitte | Forage",
+    year: "2025",
+    skills: ["Cyber Security Threat Mapping", "Perimeter Access Management", "Intrusion Vulnerability Mitigation"],
+    credentialId: "FopXjX8SsfCTEyEzy",
+    description: "Successfully executed real-world network infrastructure parameter analysis modules. Formulated risk evaluation telemetry logs, tracked potential structural system vector exploits, and configured mock endpoint defense profiles.",
+    link: "#",
+  },
+  {
+    title: "GENAI and XAI Workshop",
+    org: "Karpagam College of Engineering",
+    year: "2025",
+    skills: ["Generative AI Layers", "Explainable AI (XAI)", "Dhruva Tech Festival", "Model Transparency Logs"],
+    credentialId: "KCE-DHRUVA-XAI25",
+    description: "Participated in national level technical workshops focusing on Generative AI deployment loops and Explainable AI verification vectors. Traced mathematical weights within black-box networks to clarify algorithmic decision paths.",
+    link: "#",
+  }
+];],
+projects.js[import s2cMainImg from "../assets/images/s2c_img1.png";
+import s2c_img from "../assets/images/s2c_img.png";
+import s2c_img2 from "../assets/images/s2c_img2.png";
+import s2c_img3 from "../assets/images/s2c_img3.png";
+import s2c_img4 from "../assets/images/s2c_img4.png";
+import s2c_img5 from "../assets/images/s2c_img5.png";
+import s2c_img6 from "../assets/images/s2c_img6.jpg";
+import r2vMainImg from "../assets/images/r2v_img.png";
+import prismMainImg from "../assets/images/prism_img1.jpg";
+import prism_img2 from "../assets/images/prism_img2.jpg";
+import prism_img3 from "../assets/images/prism_img3.png";
+import prism_img4 from "../assets/images/prism_img4.png";
+import smartEyeMainImg from "../assets/images/smart_eye_img2.jpg";
+import smartEye2 from "../assets/images/smart_eye_img.png";
+import smartWasteMainImg from "../assets/images/smart_waste_img1.jpg";
+import air_img1 from "../assets/images/air_quality_prediction_img1.png";
+import air_Main from "../assets/images/air_quality_prediction_img.png";
+
+export const projects = [
+  {
+    title: "Activity-Aware Low Switching Neural MAC Architecture",
+    category: "VLSI + AI Hardware",
+    problem: "AI accelerators consume significant power due to continuous switching activity during neural computations, limiting edge deployment.",
+    solution: "Designed a power-efficient MAC architecture using activity-aware input detection to reduce unnecessary switching operations and improve energy efficiency.",
+    technologies: ["Verilog", "RTL Design", "FPGA", "Computer Architecture"],
+    stack: "Vivado · ModelSim · FPGA Prototype",
+    status: "IN_PROGRESS",
+    impact: "Exploring energy-efficient hardware architectures for future AI accelerator applications.",
+    github: "#",
+    demo: null,
+  },
+    {
+    title: "Smart Eye",
+    category: "Embedded IoT System",
+    problem: "Real-time crowd density tracking at public venues requires low-cost, scalable hardware solutions.",
+    solution: "Real-time crowd density monitoring system using ESP32, ultrasonic sensors, MQTT communication, and Node-RED dashboard with planned edge-AI inference.",
+    technologies: ["ESP32", "MQTT", "Node-RED", "Embedded C", "GIS Simulation"],
+    stack: "Embedded Hardware Prototype",
+    impact: "First Prize — Mahendra Engineering College Project Expo.",
+    github: "#",
+    image: smartEyeMainImg,
+    youtubeId: "bNni3NOueuM",
+    images: [smartEyeMainImg, smartEye2],
+    demo: null,
+  },
+  {
+    title: "Smart Waste Segregation Monitoring System",
+    category: "AI + IoT + Sustainability",
+    problem: "Improper waste segregation at source reduces recycling efficiency and increases environmental impact.",
+    solution: "AI-powered waste classification and monitoring system using computer vision, sensor arrays, and automated sorting mechanisms with real-time alerts.",
+    technologies: ["AI Image Classification", "ESP32", "Sensors", "MQTT", "Embedded C"],
+    stack: "Embedded Hardware + AI Prototype",
+    impact: "Selected for Smart India Hackathon 2025 (college level). Second Prize — Kongu Engineering College.",
+    github: "https://github.com/anandmsak/SIH_25014_Project",
+    image: smartWasteMainImg,
+    youtubeId: "HxeRsRr5srI",
+    demo: null,
+  },
+  {
+    title: "S2C — Sketch-to-Circuit AI System",
+    category: "AI + Computer Vision + Electronics",
+    problem: "Students struggle to understand how circuit simulators solve circuits internally — the process is a black box.",
+    solution: "An AI-based educational system that converts hand-drawn circuit sketches into digital netlists, solves them using Modified Nodal Analysis, and explains every step.",
+    technologies: ["Python", "YOLOv8", "OpenCV", "NumPy", "NetworkX", "Streamlit"],
+    stack: "Web Application + AI Pipeline",
+    impact: "Trained on 1,200+ images; detects 6 component types; solves DC circuits in under 10 seconds with full KCL/KVL explainability.",
+    github: "https://github.com/anandmsak/S2C_VF",
+    image: s2cMainImg,
+    images: [s2c_img3, s2c_img4,s2c_img, s2c_img2, s2c_img5,s2c_img6 ],
+    demo: null,
+  },
+  {
+    title: "PRISM SAFE 2.0",
+    category: "AIoT + Public Safety",
+    problem: "Existing crowd monitoring systems detect problems after they occur instead of predicting risks before a crisis develops.",
+    solution: "AI-based crowd analysis system using ESP32-CAM nodes and PIR/IR sensor arrays to predict congestion and danger conditions in real time.",
+    technologies: ["Python", "OpenCV", "Flask", "ESP32-CAM", "MQTT", "Node-RED"],
+    stack: "Embedded Hardware + AI Cloud Pipeline",
+    impact: "Presented at Medha'26 National Hackathon. Supports up to 16 sensor zones with multi-level alert escalation.",
+    github: "https://github.com/anandmsak/PS_2.0",
+    image: prismMainImg,
+    images: [prismMainImg ,prism_img2, prism_img3,prism_img4],
+    demo: null,
+  },
+   {
+    title: "R2V — Right To Vote",
+    category: "Secure Digital Systems",
+    problem: "Traditional institutional voting lacks transparency, security, and auditability.",
+    solution: "A secure digital election platform with hash-chained audit logs, JWT authentication, anonymous voting, and tamper-evident records.",
+    technologies: ["React", "FastAPI", "PostgreSQL", "JWT", "Security Architecture"],
+    stack: "Full-Stack Web Application",
+    impact: "Dual portals (Student/Admin), register-number voter validation, real-time election management for college-level deployment.",
+    github: "https://github.com/anandmsak/r2v/tree/a2",
+    image: r2vMainImg,
+    demo: null,
+  },
+
+  {
+    title: "Environmental Monitoring & Pollution Prediction System",
+    category: "AI / Machine Learning",
+    problem: "Air quality monitoring needs predictive intelligence to anticipate pollution events, not just measure them reactively.",
+    solution: "Machine learning system trained on environmental datasets to predict pollution levels with regression models, data analysis, and visual dashboards.",
+    technologies: ["Python", "Pandas", "Scikit-learn", "Jupyter Notebook", "ML"],
+    stack: "Python ML Pipeline",
+    impact: "Features data analysis, regression-based prediction, and pollution visualization.",
+    github: "#",
+    image: air_Main,
+    images: [air_Main,air_img1],
+    demo: null,
+  },
+];],
+skills.js[export const skills = [
+  {
+    category: "VLSI & Digital Design",
+    icon: "chip",
+    color: "#00f5ff",
+    items: [
+      "RTL Design",
+      "Verilog",
+      "SystemVerilog",
+      "Digital Logic Design",
+      "Computer Architecture",
+      "CMOS Fundamentals",
+      "FPGA Design",
+      "Hardware Optimization",
+    ],
+  },
+  {
+    category: "Embedded Systems",
+    icon: "cpu",
+    color: "#7c3aed",
+    items: [
+      "Embedded C",
+      "ESP32 / ESP8266",
+      "ARM Architecture",
+      "Microcontrollers",
+      "Sensor Interfacing",
+      "MQTT Protocol",
+      "IoT Systems",
+      "Real-Time Systems",
+    ],
+  },
+  {
+    category: "AI & Machine Learning",
+    icon: "brain",
+    color: "#22c55e",
+    items: [
+      "Machine Learning",
+      "Neural Networks",
+      "Computer Vision",
+      "YOLOv8",
+      "Edge AI",
+      "AI Hardware Acceleration",
+      "Data Analytics",
+      "OpenCV",
+    ],
+  },
+  {
+    category: "Programming",
+    icon: "code",
+    color: "#f59e0b",
+    items: [
+      "C / C++",
+      "Python",
+      "JavaScript",
+      "Java",
+      "SQL",
+    ],
+  },
+  {
+    category: "Tools & Platforms",
+    icon: "tools",
+    color: "#ec4899",
+    items: [
+      "Xilinx Vivado",
+      "ModelSim",
+      "MATLAB",
+      "LTSpice",
+      "Git",
+      "Node-RED",
+      "Streamlit",
+      "Jupyter Notebook",
+    ],
+  },
+];],
+
+###########
+C:\Users\ak272\Desktop\ak-portfolio\silicon-portfolio\src\hooks
+useScroll.js[import { useState, useEffect } from "react";
+
+export function useScrollY() {
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handler = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", handler, { passive: true });
+    return () => window.removeEventListener("scroll", handler);
+  }, []);
+
+  return scrollY;
+}
+
+export function useActiveSection(sectionIds) {
+  const [active, setActive] = useState("");
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActive(entry.target.id);
+        });
+      },
+      { threshold: 0.4 }
+    );
+
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [sectionIds]);
+
+  return active;
+}],
+######
+
+C:\Users\ak272\Desktop\ak-portfolio\silicon-portfolio\src\sections
+
+About.jsx[import { motion } from "framer-motion";
+import Reveal from "../components/animations/Reveal";
+import SectionTitle from "../components/ui/SectionTitle";
+import profileImg from "../assets/images/profile.jpg";
+
+const focusAreas = [
+  {
+    icon: "◈",
+    title: "VLSI & RTL Design",
+    desc: "RTL architectures, Verilog-based hardware, FPGA prototyping, and low-power digital systems.",
+    color: "#00f5ff",
+  },
+  {
+    icon: "◉",
+    title: "Embedded Intelligence",
+    desc: "Sensors, microcontrollers, and intelligent algorithms fused into real-world embedded and IoT platforms.",
+    color: "#f59e0b",
+  },
+  {
+    icon: "◆",
+    title: "AI Hardware",
+    desc: "Efficient neural processing pipelines for edge devices — from computer vision to AI accelerator design.",
+    color: "#7c3aed",
+  },
+];
+
+const researchTags = [
+  "VLSI Architecture",
+  "RTL Optimization",
+  "FPGA Acceleration",
+  "AI Accelerator Design",
+  "Edge AI Systems",
+  "Embedded Intelligence",
+  "Computer Vision",
+  "IoT Security",
+];
+
+export default function About() {
+  return (
+    <section
+      id="about"
+      style={{ padding: "6rem 0", maxWidth: "1280px", margin: "0 auto", paddingLeft: "2.5rem", paddingRight: "2.5rem" }}
+    >
+      <SectionTitle
+        label="Profile"
+        title="About Me"
+        subtitle="ECE student building at the intersection of silicon design, embedded computing, and artificial intelligence."
+      />
+
+      <div className="grid lg:grid-cols-12 gap-10 items-start">
+
+        {/* ── LEFT: Professional ID Card (4 cols) ── */}
+        <div className="lg:col-span-4">
+          <Reveal direction="left">
+            <motion.div
+              whileHover={{ y: -6, boxShadow: "0 30px 80px rgba(0,245,255,0.1)" }}
+              transition={{ type: "spring", stiffness: 240, damping: 22 }}
+              className="rounded-2xl overflow-hidden"
+              style={{
+                background: "linear-gradient(155deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                boxShadow: "0 0 60px rgba(0,245,255,0.05), 0 24px 64px rgba(0,0,0,0.5)",
+              }}
+            >
+              {/* ── Photo area — TALL, photo fills from bottom ── */}
+              <div
+                className="relative overflow-hidden"
+                style={{
+                  height: "320px",
+                  background: "linear-gradient(175deg, #0c1a35 0%, #050816 100%)",
+                }}
+              >
+                {/* Grid overlay */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px)",
+                    backgroundSize: "24px 24px",
+                  }}
+                />
+
+                {/* Top glow */}
+                <div
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-32 blur-3xl"
+                  style={{ background: "radial-gradient(ellipse, rgba(0,245,255,0.12) 0%, transparent 70%)" }}
+                />
+
+                {/* Availability badge */}
+                <div
+                  className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full backdrop-blur-md z-20"
+                  style={{
+                    background: "rgba(34,197,94,0.08)",
+                    border: "1px solid rgba(34,197,94,0.25)",
+                  }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 pulse-glow" />
+                  <span className="text-[10px] font-mono text-green-400 tracking-wide">Available</span>
+                </div>
+
+                {/* Corner accents */}
+                <div className="absolute top-4 left-4 w-5 h-5 border-l border-t border-cyan-400/40" />
+                <div className="absolute bottom-0 right-4 w-5 h-5 border-r border-b border-amber-400/30" />
+
+                {/* Photo — emerges from bottom, tall and fitted */}
+                <div className="absolute inset-x-0 bottom-0 flex justify-center items-end z-10">
+                  <div
+                    style={{
+                      width: "200px",
+                      height: "260px",
+                      borderRadius: "16px 16px 0 0",
+                      overflow: "hidden",
+                      border: "1px solid rgba(0,245,255,0.18)",
+                      borderBottom: "none",
+                      boxShadow: "0 -12px 50px rgba(0,245,255,0.12), 0 -4px 20px rgba(0,0,0,0.6)",
+                    }}
+                  >
+                    <img
+                      src={profileImg}
+                      alt="Anandha Krishnan P"
+                      className="w-full h-full object-cover object-top"
+                    />
+                    {/* Bottom blend */}
+                    <div
+                      className="absolute inset-x-0 bottom-0 h-12"
+                      style={{ background: "linear-gradient(to top, rgba(5,8,22,0.5), transparent)" }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Info area ── */}
+              <div className="px-6 py-5">
+                {/* Name + role */}
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3
+                      className="text-white font-bold text-[15px] tracking-wide mb-0.5"
+                      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                    >
+                      Anandha Krishnan P
+                    </h3>
+                    <p className="font-mono text-[10px] text-cyan-400 tracking-[0.2em]">
+                      VLSI · RTL · EMBEDDED · AI HW
+                    </p>
+                  </div>
+                  {/* ID chip decoration */}
+                  <div
+                    className="w-9 h-6 rounded flex items-center justify-center flex-shrink-0"
+                    style={{ border: "1px solid rgba(245,158,11,0.3)" }}
+                  >
+                    <div
+                      className="w-5 h-3.5 rounded-sm"
+                      style={{
+                        border: "1px solid rgba(245,158,11,0.5)",
+                        background: "rgba(245,158,11,0.05)",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Info rows */}
+                <div className="space-y-0 mb-5">
+                  {[
+                    { label: "Institution", value: "Mahendra Engineering College" },
+                    { label: "Degree",      value: "B.E. Electronics & Communication" },
+                    { label: "Batch",       value: "2024 – 2028" },
+                    { label: "Location",    value: "Namakkal, Tamil Nadu" },
+                  ].map((row) => (
+                    <div
+                      key={row.label}
+                      className="flex justify-between items-center py-2.5"
+                      style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+                    >
+                      <span className="font-mono text-[9px] text-gray-600 tracking-[0.2em] uppercase flex-shrink-0 mr-3">
+                        {row.label}
+                      </span>
+                      <span className="text-[11px] text-gray-300 text-right leading-tight">
+                        {row.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Social links */}
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { label: "LinkedIn", href: "https://www.linkedin.com/in/anandha-krishnan-vlsi", color: "#00f5ff" },
+                    { label: "GitHub",   href: "https://github.com/anandmsak",                       color: "#f59e0b" },
+                    { label: "Email",    href: "mailto:anandhperumal27@gmail.com",                   color: "#94a3b8" },
+                  ].map((link) => (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      target={link.href.startsWith("http") ? "_blank" : undefined}
+                      rel="noopener noreferrer"
+                      className="text-center py-2 rounded-lg text-[11px] font-mono transition-all duration-300 hover:-translate-y-0.5"
+                      style={{
+                        color: link.color,
+                        border: `1px solid ${link.color}22`,
+                        background: `${link.color}05`,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = `${link.color}12`;
+                        e.currentTarget.style.borderColor = `${link.color}44`;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = `${link.color}05`;
+                        e.currentTarget.style.borderColor = `${link.color}22`;
+                      }}
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </Reveal>
+        </div>
+
+        {/* ── RIGHT: Bio + Focus + Research (8 cols) ── */}
+        <div className="lg:col-span-8 flex flex-col gap-7">
+
+          {/* Bio paragraphs */}
+          <Reveal>
+            <div
+              className="space-y-4 text-gray-400 leading-[1.95]"
+              style={{ fontSize: "14.5px" }}
+            >
+              <p>
+                I am an Electronics and Communication Engineering student
+                specializing in{" "}
+                <span className="text-cyan-400 font-medium">VLSI Design</span>,
+                RTL Architecture, FPGA Systems, Embedded Technologies, and AI
+                Hardware. My core interest lies in designing the hardware
+                foundation behind modern intelligent systems.
+              </p>
+              <p>
+                From digital circuits and processors to AI accelerators and edge
+                computing platforms, I work across the full hardware stack —
+                developing expertise in{" "}
+                <span className="text-cyan-400 font-medium">RTL design</span>,
+                Verilog-based hardware development, FPGA implementation, and
+                low-power hardware optimization.
+              </p>
+              <p>
+                My long-term goal is to become a{" "}
+                <span className="text-amber-400 font-semibold">
+                  VLSI / RTL Design Engineer
+                </span>{" "}
+                contributing to next-generation semiconductor and AI hardware
+                systems that power the future of computing.
+              </p>
+            </div>
+          </Reveal>
+
+          {/* Focus area cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {focusAreas.map((area, i) => (
+              <Reveal key={area.title} delay={i * 0.1}>
+                <motion.div
+                  whileHover={{ y: -4, boxShadow: `0 12px 40px ${area.color}15` }}
+                  className="rounded-xl p-5 h-full transition-all duration-300 cursor-default"
+                  style={{
+                    background: "rgba(255,255,255,0.03)",
+                    border: `1px solid ${area.color}1a`,
+                  }}
+                >
+                  <span
+                    className="text-2xl block mb-3"
+                    style={{ color: area.color }}
+                  >
+                    {area.icon}
+                  </span>
+                  <h4
+                    className="text-[12px] font-bold font-mono mb-2"
+                    style={{ color: area.color }}
+                  >
+                    {area.title}
+                  </h4>
+                  <p className="text-gray-500 text-[11px] leading-relaxed">
+                    {area.desc}
+                  </p>
+                </motion.div>
+              </Reveal>
+            ))}
+          </div>
+
+          {/* Research interests */}
+          <Reveal delay={0.2}>
+            <div
+              className="rounded-xl p-5"
+              style={{
+                background: "rgba(0,245,255,0.02)",
+                border: "1px solid rgba(0,245,255,0.09)",
+              }}
+            >
+              <p className="font-mono text-[9px] text-gray-600 tracking-[0.35em] uppercase mb-3">
+                // Research Interests
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {researchTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-[11px] px-3 py-1.5 rounded-full text-cyan-400 font-mono cursor-default transition-all duration-300 hover:bg-cyan-400/10"
+                    style={{ border: "1px solid rgba(0,245,255,0.14)" }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </Reveal>
+
+          {/* Email footer row */}
+          <Reveal delay={0.3}>
+            <div
+              className="flex items-center gap-4 pt-4"
+              style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+            >
+              <span className="font-mono text-[9px] text-gray-600 tracking-[0.3em] uppercase">
+                Direct Contact
+              </span>
+              <a
+                href="mailto:anandhperumal27@gmail.com"
+                className="font-mono text-[12px] text-gray-400 hover:text-cyan-400 transition-colors duration-200"
+              >
+                anandhperumal27@gmail.com
+              </a>
+            </div>
+          </Reveal>
+
+        </div>
+      </div>
+    </section>
+  );
+}],
+Achievements.jsx[import { achievements } from "../data/achievements";
+import Reveal from "../components/animations/Reveal";
+import SectionTitle from "../components/ui/SectionTitle";
+
+export default function Achievements() {
+  const competitiveRecords = achievements.filter((item) => item.type !== "research");
+
+  return (
+    <section id="achievements" className="py-28 max-w-[1400px] mx-auto px-6 md:px-16 lg:px-24 relative z-10">
+      <SectionTitle
+        label="ACHIEVEMENT LOG"
+        title="Achievement Log"
+        subtitle="Verified competitive records, hackathon tracks, and hardware expo victories mapped on a circuit timeline."
+      />
+
+      <div className="max-w-4xl mx-auto relative pl-10 md:pl-0">
+        
+        {/* Center Circuit Line Path */}
+        <div className="absolute left-3.5 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-cyan-400 via-purple-500 to-transparent opacity-40 shadow-[0_0_10px_rgba(0,245,255,0.2)]" />
+
+        <div className="space-y-12">
+          {competitiveRecords.map((record, i) => {
+            const isEven = i % 2 === 0;
+
+            return (
+              <div key={record.title} className={`relative flex flex-col md:flex-row items-start ${isEven ? "md:flex-row-reverse" : ""}`}>
+                
+                {/* PCB Connection Node Point Pin */}
+                <div className="absolute left-[-23px] md:left-1/2 md:-translate-x-1/2 top-3 z-20 flex items-center justify-center">
+                  <div className="w-3.5 h-3.5 rounded-full bg-black border-[2px] border-cyan-400 shadow-[0_0_8px_#00f5ff] pulse-glow" />
+                </div>
+
+                {/* Left/Right Alternate Glass Card Container */}
+                <div className="w-full md:w-1/2 md:px-8">
+                  <Reveal direction={isEven ? "left" : "right"}>
+                    <div className="border border-white/5 bg-gradient-to-b from-white/[0.03] to-transparent p-5 rounded-xl transition-all duration-300 relative group">
+                      
+                      {/* Top Diagnostic Ribbon — CRITICAL FIX: Enhanced Year Identifier Visibility */}
+                      <div className="flex items-center justify-between gap-4 mb-3 font-mono">
+                        <span className="text-cyan-400 tracking-widest text-[9px] font-bold uppercase">// TELEMETRY_NODE_0{i+1}</span>
+                        {/* High-Contrast Clear Read Neon Badge */}
+                        <span className="text-cyan-400 font-bold bg-cyan-400/10 border border-cyan-500/20 px-3 py-0.5 text-xs rounded-md shadow-[0_0_10px_rgba(0,245,255,0.1)]">
+                          {record.year}
+                        </span>
+                      </div>
+
+                      <h4 className="text-base font-bold text-slate-100 tracking-tight mb-1.5 font-sans group-hover:text-white transition-colors">
+                        {record.title}
+                      </h4>
+                      
+                      <p className="text-gray-400 text-xs font-sans leading-relaxed mb-4">
+                        {record.detail}
+                      </p>
+
+                      <div className="inline-flex items-center gap-1.5 font-mono text-[9px] text-gray-500 bg-black/40 border border-white/5 rounded px-2.5 py-1 uppercase">
+                        <span className="text-gray-700">VERIFIED_ISSUER:</span>
+                        <span className="text-gray-400 font-semibold">{record.org}</span>
+                      </div>
+
+                    </div>
+                  </Reveal>
+                </div>
+
+                {/* Desktop Balance Spacer Grid Column */}
+                <div className="hidden md:block w-1/2" />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}],Certifications.jsx[import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { certifications } from "../data/certifications";
+import Reveal from "../components/animations/Reveal";
+import SectionTitle from "../components/ui/SectionTitle";
+
+// Directory asset file imports
+import certAicte from "../assets/images/cert_aicte.jpg";
+import certIBM from "../assets/images/cert_ibm_ai.jpg";
+import certDeloitteJob from "../assets/images/cert_deloitte_job.jpg";
+import certDeloitteCyber from "../assets/images/cert_deloitte_cyber.jpg";
+import certEncoderDecoder from "../assets/images/cert_encoder_decoder.jpg";
+import certGenAiXai from "../assets/images/cert_genai_xai.jpg";
+import certIotWorkshop from "../assets/images/cert_iot_workshop.jpg";
+import certNielit from "../assets/images/cert_nielit.jpg";
+import certNPTEL_IOT from "../assets/images/cert_iot_nptel.jpg";
+import cert_ieee_aimla from "../assets/images/cert_ieee_aimla.jpg";
+
+const assetMap = {
+  "Artificial Intelligence and Data Analytics (Green Skills)": certAicte,
+  "AI for Sustainability Virtual Internship": certIBM,
+  "Embedded Systems for Beginners": certNielit,
+  "IoT & Embedded Systems Workshop": certIotWorkshop,
+  "IoT and Embedded System Workshop": certIotWorkshop,
+  "GENAI and XAI Workshop": certGenAiXai,
+  "Deloitte Job Simulation": certDeloitteJob,
+  "Deloitte Technology Job Simulation": certDeloitteJob,
+  "Deloitte Cyber Security Simulation": certDeloitteCyber,
+  "Deloitte Cyber Job Simulation": certDeloitteCyber,
+  "Encoder Decoder Architecture": certEncoderDecoder,
+  "Encoder-Decoder Architecture": certEncoderDecoder,
+  "Introduction_to_Internet_of_Things": certNPTEL_IOT,
+  "Introduction to Internet of Things": certNPTEL_IOT,
+  "Certificate of Presentation – IEEE AIMLA 2026": cert_ieee_aimla,
+};
+
+export default function Certifications({ setActiveZoomImage }) {
+  const [activeSidePanel, setActiveSidePanel] = useState(null);
+
+  return (
+    <section id="certifications" className="py-28 max-w-[1400px] mx-auto px-6 md:px-16 lg:px-24 relative z-10">
+      <SectionTitle
+        label="CREDENTIAL MATRIX"
+        title="Verified Credentials"
+        subtitle="Professional credentials, field telemetry certifications, and corporate job simulations."
+      />
+
+      {/* Balanced 2-Column Desktop Grid Assembly Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+        {certifications.map((cert, i) => {
+          const matchedAsset = assetMap[cert.title] || null;
+
+          const handleZoom = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (matchedAsset && setActiveZoomImage) {
+              setActiveZoomImage({
+                src: matchedAsset,
+                alt: cert.title,
+                images: [matchedAsset],
+                index: 0
+              });
+            }
+          };
+
+          return (
+            <Reveal key={cert.title} delay={i * 0.04}>
+              <motion.div
+                whileHover={{ borderColor: "rgba(0, 245, 255, 0.25)", x: 2 }}
+                className="group border border-white/5 bg-gradient-to-r from-slate-950/50 via-[#070c1e]/30 to-transparent rounded-xl p-5 backdrop-blur-xl w-full flex flex-col sm:flex-row gap-5 relative overflow-hidden items-center sm:items-stretch"
+                style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }}
+              >
+                <div className="absolute top-0 left-0 w-full h-px bg-cyan-400/10 group-hover:bg-cyan-400/40 transition-colors duration-300 pointer-events-none" />
+
+                {/* LEFT FLANK: Certificate Image Frame Case */}
+                <div 
+                  onClick={handleZoom}
+                  className="w-full sm:w-44 h-32 rounded-lg bg-black border border-white/5 relative overflow-hidden flex items-center justify-center shrink-0 cursor-pointer group/thumb shadow-inner"
+                >
+                  <div className="absolute inset-0 bg-[linear-gradient(rgba(0,245,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(0,245,255,0.01)_1px,transparent_1px)] background-size-[10px_10px] z-10 pointer-events-none" />
+                  {matchedAsset ? (
+                    <img 
+                      src={matchedAsset} 
+                      alt={cert.title} 
+                      className="w-full h-full object-cover opacity-60 group-hover/thumb:opacity-95 group-hover/thumb:scale-[1.02] transition-all duration-300 filter contrast-125 mix-blend-screen"
+                    />
+                  ) : (
+                    <span className="font-mono text-[8px] text-gray-700 tracking-widest uppercase">[ ACCESS_DENIED ]</span>
+                  )}
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center font-mono text-[8px] text-cyan-400 tracking-wider font-bold z-20 uppercase">
+                    [ ZOOM_LOG ]
+                  </div>
+                </div>
+
+                {/* RIGHT FLANK: High-Density Meta Text Area */}
+                <div className="flex flex-col justify-between flex-1 w-full text-center sm:text-left py-0.5">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-center sm:justify-between gap-2 font-mono text-[9px]">
+                      <span className="tracking-wider uppercase text-cyan-400 font-semibold tracking-widest">// {cert.org}</span>
+                      <span className="text-gray-500 font-bold">{cert.year}</span>
+                    </div>
+
+                    <h3 className="text-sm sm:text-base font-bold text-slate-200 tracking-tight leading-snug group-hover:text-white transition-colors">
+                      {cert.title}
+                    </h3>
+
+                    {/* Description Paragraph Container */}
+                    <p className="text-[11px] text-gray-400 font-sans line-clamp-2 leading-relaxed text-left">
+                      {cert.description}
+                    </p>
+
+                    {/* Tech Skill Sub-Ribbon Strip Array */}
+                    <div className="flex flex-wrap gap-1 pt-1 justify-center sm:justify-start">
+                      {cert.skills.slice(0, 3).map(skill => (
+                        <span key={skill} className="font-mono text-[8px] text-gray-500 bg-white/5 border border-white/5 px-1.5 py-0.5 rounded">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Operational Status HUD Footer Tray */}
+                  <div className="flex items-center justify-between gap-4 font-mono text-[9px] border-t border-white/5 pt-3 mt-4">
+                    <div className="text-gray-500 hidden sm:block truncate max-w-[140px] md:max-w-[200px]">
+                      ID: <span className="text-gray-400">{cert.credentialId}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 mx-auto sm:mx-0 sm:hidden">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-emerald-400 font-bold tracking-widest">[ VERIFIED ]</span>
+                    </div>
+                    
+                    <button 
+                      onClick={() => setActiveSidePanel({ ...cert, asset: matchedAsset })}
+                      className="text-cyan-400 hover:text-white font-bold tracking-wider transition-all cursor-pointer uppercase border border-cyan-500/20 hover:bg-cyan-400/10 px-3 py-1 rounded shadow-[0_0_8px_rgba(0,245,255,0.05)] ml-auto sm:ml-0"
+                    >
+                      [ LOG_VIEW ]
+                    </button>
+                  </div>
+                </div>
+
+              </motion.div>
+            </Reveal>
+          );
+        })}
+      </div>
+
+      {/* ── INTERACTIVE SLIDE-OUT RIGHT HAND SIDE METADATA SHEET DRAWER ── */}
+      <AnimatePresence>
+        {activeSidePanel && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setActiveSidePanel(null)}
+              className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm cursor-pointer"
+            />
+
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 32, stiffness: 260 }}
+              className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-[#050813]/99 border-l border-cyan-500/10 shadow-2xl z-[201] p-6 flex flex-col justify-between font-sans select-none"
+            >
+              <div className="space-y-6 overflow-y-auto pr-1 h-full custom-modal-scroll">
+                {/* Drawer Module Title ribbon header */}
+                <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                  <div>
+                    <span className="font-mono text-[9px] text-cyan-400 tracking-widest uppercase block mb-0.5">// DIAG_TELEMETRY_SHEET</span>
+                    <h2 className="text-sm font-bold text-white uppercase tracking-wider">Credential Verification Profile</h2>
+                  </div>
+                  <button 
+                    onClick={() => setActiveSidePanel(null)}
+                    className="font-mono text-[9px] text-gray-500 hover:text-red-400 border border-white/10 bg-white/5 px-2.5 py-1 rounded transition-colors cursor-pointer"
+                  >
+                    [ DISMISS ]
+                  </button>
+                </div>
+
+                {/* Central Drawer Zoomable Landscape Preview Asset Frame */}
+                {activeSidePanel.asset && (
+                  <div 
+                    onClick={() => {
+                      if (setActiveZoomImage) {
+                        setActiveZoomImage({ src: activeSidePanel.asset, alt: activeSidePanel.title, images: [activeSidePanel.asset], index: 0 });
+                      }
+                    }}
+                    className="w-full h-48 bg-black/60 rounded-lg border border-white/5 relative overflow-hidden flex items-center justify-center cursor-zoom-in group/sideimg shadow-inner p-1"
+                  >
+                    <img src={activeSidePanel.asset} alt={activeSidePanel.title} className="w-full h-full object-contain filter brightness-95 group-hover/sideimg:scale-[1.01] transition-transform duration-300" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/sideimg:opacity-100 transition-opacity flex items-center justify-center font-mono text-[8px] text-cyan-400 font-bold tracking-widest uppercase">[ EXPLODE_VIEWPORT ]</div>
+                  </div>
+                )}
+
+                {/* Primary Panel Meta Data Dictionary Block List */}
+                <div className="space-y-5 text-xs">
+                  <div>
+                    <div className="font-mono text-[9px] text-gray-500 uppercase tracking-widest mb-1">// SYSTEM_CREDENTIAL_TITLE</div>
+                    <div className="text-sm font-bold text-white leading-snug">{activeSidePanel.title}</div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 border-y border-white/5 py-3">
+                    <div>
+                      <div className="font-mono text-[9px] text-gray-500 uppercase tracking-widest mb-1">// VALIDATING_AUTHORITY</div>
+                      <div className="font-semibold text-slate-300 tracking-tight leading-tight">{activeSidePanel.org}</div>
+                    </div>
+                    <div>
+                      <div className="font-mono text-[9px] text-gray-500 uppercase tracking-widest mb-1">// TIMELINE_STAMP</div>
+                      <div className="font-mono text-cyan-400 font-bold">{activeSidePanel.year}</div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="font-mono text-[9px] text-gray-500 uppercase tracking-widest mb-1">// CORE_SYNOPSIS_LOG</div>
+                    <p className="text-gray-400 leading-relaxed font-sans text-justify">{activeSidePanel.description}</p>
+                  </div>
+
+                  <div>
+                    <div className="font-mono text-[9px] text-gray-500 uppercase tracking-widest mb-2">// TECHNICAL_SKILLS_ACQUIRED</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {activeSidePanel.skills.map(skill => (
+                        <span key={skill} className="font-mono text-[9px] text-cyan-400/90 border border-cyan-500/10 bg-cyan-950/20 px-2.5 py-0.5 rounded tracking-wide">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Fixed HUD Anchor Registry line panel */}
+              <div className="border-t border-white/5 pt-4 mt-4 flex items-center justify-between font-mono text-[9px] shrink-0">
+                <div className="space-y-0.5">
+                  <div className="text-gray-600 uppercase tracking-wider">IDENTIFIER_KEY_HASH:</div>
+                  <div className="text-gray-400 font-bold select-text selection:bg-cyan-500 selection:text-black">{activeSidePanel.credentialId}</div>
+                </div>
+                <div className="flex items-center gap-1 bg-emerald-500/5 border border-emerald-500/20 px-2 py-0.5 rounded shrink-0">
+                  <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-emerald-400 text-[8px] font-bold tracking-widest">[ SECURE ]</span>
+                </div>
+              </div>
+
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </section>
+  );
+}],Contact.jsx[import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import Reveal from "../components/animations/Reveal";
+import SectionTitle from "../components/ui/SectionTitle";
+
+/* ── Animated clock-signal SVG trace ── */
+function ClockTrace() {
+  return (
+    <svg
+      viewBox="0 0 900 60"
+      preserveAspectRatio="none"
+      className="w-full h-12"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="traceGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#00c8ff" stopOpacity="0" />
+          <stop offset="20%" stopColor="#00c8ff" stopOpacity="0.8" />
+          <stop offset="80%" stopColor="#7c3aed" stopOpacity="0.8" />
+          <stop offset="100%" stopColor="#7c3aed" stopOpacity="0" />
+        </linearGradient>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      {/* Static dim trace rail */}
+      <path
+        d="M0,40 H900"
+        stroke="#1e293b"
+        strokeWidth="1"
+        fill="none"
+      />
+      {/* Clock waveform — square wave pattern */}
+      <motion.path
+        d="M0,40 H40 V12 H120 V40 H200 V12 H280 V40 H360 V12 H440 V40 H520 V12 H600 V40 H680 V12 H760 V40 H840 V12 H900"
+        stroke="url(#traceGrad)"
+        strokeWidth="1.5"
+        fill="none"
+        filter="url(#glow)"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{ duration: 1.8, ease: "easeInOut", delay: 0.3 }}
+      />
+      {/* Animated pulse dot riding the trace */}
+      <motion.circle
+        r="3"
+        fill="#00c8ff"
+        filter="url(#glow)"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0, 1, 1, 0] }}
+        transition={{ duration: 2.4, repeat: Infinity, delay: 1.2 }}
+      >
+        <animateMotion
+          dur="3s"
+          repeatCount="indefinite"
+          path="M0,40 H40 V12 H120 V40 H200 V12 H280 V40 H360 V12 H440 V40 H520 V12 H600 V40 H680 V12 H760 V40 H840 V12 H900"
+        />
+      </motion.circle>
+    </svg>
+  );
+}
+
+/* ── Individual channel row ── */
+function ChannelRow({ channel, index }) {
+  const icons = {
+    email: (
+      <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4" stroke="currentColor" strokeWidth={1.5}>
+        <rect x="2" y="4" width="20" height="16" rx="2" />
+        <path d="M2 7l10 7 10-7" />
+      </svg>
+    ),
+    linkedin: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+      </svg>
+    ),
+    github: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+        <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+      </svg>
+    ),
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -16 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.5 + index * 0.12, duration: 0.4 }}
+    >
+      <a
+        href={channel.route}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group flex items-center justify-between gap-4 px-5 py-4 rounded-xl border transition-all duration-250 relative overflow-hidden"
+        style={{
+          background: "rgba(7,11,25,0.6)",
+          borderColor: "rgba(255,255,255,0.04)",
+        }}
+      >
+        {/* Hover fill sweep */}
+        <motion.div
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+          style={{
+            background: `linear-gradient(90deg, ${channel.color}08 0%, ${channel.color}03 100%)`,
+          }}
+        />
+        {/* Left: index + icon + label */}
+        <div className="flex items-center gap-3 min-w-0">
+          <span
+            className="font-mono text-[9px] tabular-nums shrink-0"
+            style={{ color: `${channel.color}60` }}
+          >
+            [{String(index).padStart(2, "0")}]
+          </span>
+          <span
+            className="shrink-0 transition-transform duration-200 group-hover:scale-110"
+            style={{ color: channel.color }}
+          >
+            {icons[channel.icon]}
+          </span>
+          <div className="min-w-0">
+            <div
+              className="font-mono text-[9px] tracking-widest uppercase mb-0.5 transition-colors duration-200"
+              style={{ color: `${channel.color}70` }}
+            >
+              {channel.label}
+            </div>
+            <div
+              className="font-mono text-xs font-semibold truncate transition-colors duration-200 group-hover:underline underline-offset-2"
+              style={{ color: channel.color }}
+            >
+              {channel.val}
+            </div>
+          </div>
+        </div>
+
+        {/* Right: protocol tag + arrow */}
+        <div className="flex items-center gap-3 shrink-0">
+          <span
+            className="hidden sm:block font-mono text-[8px] px-2 py-0.5 rounded border tracking-widest"
+            style={{
+              borderColor: `${channel.color}25`,
+              color: `${channel.color}50`,
+              background: `${channel.color}08`,
+            }}
+          >
+            {channel.proto}
+          </span>
+          <motion.span
+            className="text-gray-600 group-hover:text-white transition-colors duration-200"
+            animate={{ x: [0, 2, 0] }}
+            transition={{ duration: 1.6, repeat: Infinity, delay: index * 0.3 }}
+          >
+            <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5" stroke="currentColor" strokeWidth={1.5}>
+              <path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </motion.span>
+        </div>
+      </a>
+    </motion.div>
+  );
+}
+
+/* ── Handshake status strip ── */
+function HandshakeStrip() {
+  const steps = [
+    { label: "SYN", desc: "Send request", done: true },
+    { label: "SYN-ACK", desc: "Received", done: true },
+    { label: "ACK", desc: "Link established", done: false },
+  ];
+
+  return (
+    <div className="flex items-center gap-2 font-mono text-[9px]">
+      {steps.map((s, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <div className={`flex items-center gap-1.5 ${s.done ? "text-emerald-400/70" : "text-cyan-400/50"}`}>
+            <motion.span
+              className={`w-1.5 h-1.5 rounded-full ${s.done ? "bg-emerald-400" : "bg-cyan-400"}`}
+              animate={!s.done ? { opacity: [0.3, 1, 0.3] } : {}}
+              transition={{ duration: 1.2, repeat: Infinity }}
+            />
+            <span className="tracking-widest">{s.label}</span>
+          </div>
+          {i < steps.length - 1 && (
+            <span className="text-gray-700">──</span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── Main export ── */
+export default function Contact() {
+  const connectionChannels = [
+    {
+      label: "Primary Comms",
+      val: "anandhperumal27@gmail.com",
+      route: "mailto:anandhperumal27@gmail.com",
+      color: "#00c8ff",
+      icon: "email",
+      proto: "SMTP / TLS",
+    },
+    {
+      label: "Professional Network",
+      val: "linkedin.com/in/anandha-krishnan-vlsi",
+      route: "https://www.linkedin.com/in/anandha-krishnan-vlsi",
+      color: "#3b82f6",
+      icon: "linkedin",
+      proto: "HTTPS / REST",
+    },
+    {
+      label: "Source Repository",
+      val: "github.com/anandmsak",
+      route: "https://github.com/anandmsak",
+      color: "#a78bfa",
+      icon: "github",
+      proto: "GIT / SSH",
+    },
+  ];
+
+  return (
+    <section
+      id="contact"
+      className="py-28 max-w-[1400px] mx-auto px-6 md:px-16 lg:px-24 relative z-10 flex flex-col items-center text-center"
+    >
+      <SectionTitle
+        label="CONTACT"
+        title="Let's Build Something"
+        subtitle="Open to VLSI internships, verification roles, and research collaborations. Reach out through any channel below."
+      />
+
+      <Reveal direction="fade" className="w-full flex justify-center mt-4">
+        <div
+          className="w-full max-w-3xl rounded-2xl overflow-hidden relative"
+          style={{
+            background: "linear-gradient(135deg, #070b19 0%, #02040a 100%)",
+            border: "1px solid rgba(0,200,255,0.08)",
+            boxShadow: "0 0 60px rgba(0,200,255,0.05), 0 24px 48px rgba(0,0,0,0.6)",
+          }}
+        >
+          {/* Corner accent marks — circuit board aesthetic */}
+          {[
+            "top-0 left-0 border-t border-l rounded-tl-2xl",
+            "top-0 right-0 border-t border-r rounded-tr-2xl",
+            "bottom-0 left-0 border-b border-l rounded-bl-2xl",
+            "bottom-0 right-0 border-b border-r rounded-br-2xl",
+          ].map((cls, i) => (
+            <span
+              key={i}
+              className={`absolute w-4 h-4 ${cls}`}
+              style={{ borderColor: "rgba(0,200,255,0.25)" }}
+            />
+          ))}
+
+          {/* Clock trace header */}
+          <div className="px-6 pt-5 pb-0">
+            <div className="flex items-center justify-between mb-2 font-mono text-[9px] text-gray-600">
+              <span className="tracking-widest">CLK_SIGNAL // 100MHz</span>
+              <span style={{ color: "rgba(0,200,255,0.4)" }}>LINK_ACTIVE</span>
+            </div>
+            <ClockTrace />
+          </div>
+
+          {/* Identity header */}
+          <div className="px-6 pt-4 pb-5 border-b" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
+            <div className="flex items-start justify-between gap-4">
+              <div className="text-left">
+                <div className="font-mono text-[9px] tracking-widest mb-1.5" style={{ color: "rgba(0,200,255,0.5)" }}>
+                  MODULE: engineer_contact_v1
+                </div>
+                <h3 className="text-white font-semibold text-lg leading-tight">
+                  Anandha Krishnan
+                </h3>
+                <p className="font-mono text-xs mt-0.5" style={{ color: "rgba(148,163,184,0.7)" }}>
+                  VLSI Design · RTL Verification · FPGA Systems
+                </p>
+              </div>
+              {/* Verification badge */}
+              <div
+                className="shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-lg border font-mono text-[8px] tracking-widest"
+                style={{
+                  borderColor: "rgba(16,185,129,0.2)",
+                  background: "rgba(16,185,129,0.05)",
+                  color: "rgba(16,185,129,0.6)",
+                }}
+              >
+                <motion.div
+                  className="w-2 h-2 rounded-full bg-emerald-400"
+                  animate={{ opacity: [0.4, 1, 0.4] }}
+                  transition={{ duration: 1.4, repeat: Infinity }}
+                />
+                AVAILABLE
+              </div>
+            </div>
+          </div>
+
+          {/* Channel list */}
+          <div className="px-6 py-5 space-y-2.5">
+            {connectionChannels.map((ch, i) => (
+              <ChannelRow key={i} channel={ch} index={i + 1} />
+            ))}
+          </div>
+
+          {/* Footer handshake strip */}
+          <div
+            className="px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 border-t"
+            style={{ borderColor: "rgba(255,255,255,0.04)" }}
+          >
+            <HandshakeStrip />
+            <span
+              className="font-mono text-[8px] tracking-widest"
+              style={{ color: "rgba(124,58,237,0.5)" }}
+            >
+              RTL_TESTBENCH :: READY
+            </span>
+          </div>
+        </div>
+      </Reveal>
+    </section>
+  );
+}],Education.jsx[],Experience.jsx[],
+
+Hero.jsx[/**
+ * Hero.jsx
+ * Cleaned version: Removed floating widgets and orbit timeline tracks.
+ * Keeps the clean layout with the interactive 3D <SiliconScene /> as a full background view.
+ */
+
+import { motion } from "framer-motion";
+import { Suspense } from "react";
+import Button from "../components/ui/Button";
+import SiliconScene from "../components/3d/SiliconScene";
+import profileImg from "../assets/images/profile.jpg";
+import resumeFile from "../assets/Resume-Anandha_Krishnan.pdf";
+
+/* ═══════════════════════════════════════════════════════
+   CINEMATIC HEADLINE
+═══════════════════════════════════════════════════════ */
+const HEADLINE = [
+  { text: "Designing", className: "text-white" },
+  { text: "Intelligent", className: "gradient-text" },
+  { text: "Silicon Systems", className: "text-white" },
+];
+
+function CinematicHeadline() {
+  return (
+    <h1
+      className="leading-[1.08] tracking-tight"
+      style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2.6rem, 5vw, 4rem)", fontWeight: 700 }}
+    >
+      {HEADLINE.map((line, i) => (
+        <motion.span
+          key={line.text}
+          className={`block ${line.className}`}
+          initial={{ opacity: 0, y: 28, filter: "blur(6px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ delay: 0.38 + i * 0.18, duration: 0.65, ease: "easeOut" }}
+        >
+          {line.text}
+        </motion.span>
+      ))}
+    </h1>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAIN HERO EXPORT
+═══════════════════════════════════════════════════════ */
+export default function Hero() {
+  return (
+    <section id="hero" className="relative h-screen max-h-screen flex flex-col overflow-hidden bg-black text-white">
+      {/* 3D Scene — central interactive focal point acting as full viewport background */}
+      <div className="absolute inset-0" style={{ zIndex: 0 }}>
+        <Suspense fallback={null}>
+          <SiliconScene />
+        </Suspense>
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none" />
+      </div>
+
+      {/* ── Profile photo — top-left ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+        className="relative flex items-center gap-0"
+        style={{ zIndex: 10, paddingTop: "48px", paddingLeft: "52px" }}
+      >
+        <div className="relative">
+          <div
+            className="absolute -inset-[3px] rounded-full"
+            style={{
+              background: "conic-gradient(from 0deg, #00f5ff, #3b82f6, #7c3aed, #f59e0b, #00f5ff)",
+              animation: "ringRotate 4s linear infinite",
+            }}
+          />
+          <div className="absolute -inset-3 rounded-full bg-cyan-400/12 blur-lg" />
+          <div className="relative w-[112px] h-[112px] rounded-full overflow-hidden border-[3px] border-black">
+            <img src={profileImg} alt="Anandha Krishnan P" className="w-full h-full object-cover object-top scale-110" />
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ── Left content column ── */}
+      <div
+        className="relative flex flex-col"
+        style={{ zIndex: 5, paddingTop: "24px", paddingBottom: "64px", paddingLeft: "52px", paddingRight: "52px", maxWidth: "580px" }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+        >
+          <p className="text-white font-semibold text-[15px] tracking-wide" style={{ fontFamily: "var(--font-display)" }}>
+            Anandha Krishnan P
+          </p>
+          <div className="inline-flex items-center gap-2 mt-2 px-2.5 py-1 rounded-full border border-cyan-400/20 bg-cyan-400/5">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 pulse-glow" />
+            <span className="text-[9px] text-cyan-400 tracking-[0.22em]" style={{ fontFamily: "var(--font-mono)" }}>
+              ECE · MAHENDRA ENGINEERING COLLEGE · 2028
+            </span>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="h-px w-40 bg-gradient-to-r from-cyan-400/60 to-transparent origin-left mt-5 mb-5"
+        />
+
+        <div className="mb-5">
+          <CinematicHeadline />
+        </div>
+
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.85, duration: 0.6 }}
+          className="text-gray-400 leading-[1.85] mb-5"
+          style={{ fontFamily: "var(--font-body)", fontSize: "13.5px", maxWidth: "400px" }}
+        >
+          Electronics and Communication Engineering student building efficient
+          digital systems, hardware architectures, and intelligent embedded
+          solutions at the frontier of semiconductor technology.
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.0 }}
+          className="flex flex-wrap gap-2 mb-5"
+        >
+          {["VLSI Design", "RTL Engineering", "FPGA", "Embedded Systems", "AI Hardware"].map((tag) => (
+            <span
+              key={tag}
+              className="text-gray-400 border border-white/10 hover:border-amber-400/50 hover:text-amber-400 transition-all duration-300 cursor-default"
+              style={{ fontFamily: "var(--font-mono)", fontSize: "10px", padding: "4px 10px", borderRadius: "4px", letterSpacing: "0.08em" }}
+            >
+              {tag}
+            </span>
+          ))}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.1 }}
+          className="flex flex-wrap gap-3 mb-6"
+        >
+          <Button variant="primary" href="#projects" className="rounded-[4px]! px-[18px]! py-[8px]! text-[12px]!">
+            View Projects →
+          </Button>
+          <Button variant="outline" href="#contact" className="rounded-[4px]! px-[18px]! py-[8px]! text-[12px]!">
+            Contact Me
+          </Button>
+          <a
+            href={resumeFile}
+            download
+            className="inline-flex items-center gap-2 px-[18px] py-[8px] font-semibold text-amber-400 border border-amber-400/30 hover:bg-amber-400/8 hover:border-amber-400/60 transition-all duration-300"
+            style={{ fontFamily: "var(--font-mono)", fontSize: "12px", borderRadius: "4px" }}
+          >
+            Resume ↓
+          </a>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2 }}
+          className="flex gap-8 pt-4 border-t border-white/8"
+        >
+          {[
+            { value: "7+", label: "Projects" },
+            { value: "6+", label: "Certifications" },
+            { value: "3+", label: "Awards" },
+          ].map((stat) => (
+            <div key={stat.label}>
+              <p className="gradient-text leading-none" style={{ fontFamily: "var(--font-display)", fontSize: "1.6rem", fontWeight: 700 }}>
+                {stat.value}
+              </p>
+              <p className="text-gray-500 mt-1.5 tracking-widest uppercase" style={{ fontFamily: "var(--font-mono)", fontSize: "9px" }}>
+                {stat.label}
+              </p>
+            </div>
+          ))}
+        </motion.div>
+      </div>
+
+      {/* Scroll hint */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.6 }}
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        style={{ zIndex: 10 }}
+      >
+        <span className="text-gray-600 tracking-[0.4em]" style={{ fontFamily: "var(--font-mono)", fontSize: "8px" }}>
+          SCROLL
+        </span>
+        <motion.div
+          animate={{ y: [0, 7, 0] }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+          className="w-px h-7 bg-gradient-to-b from-cyan-400/50 to-transparent"
+        />
+      </motion.div>
+    </section>
+  );
+}],Projects.jsx[import { useState, useMemo, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { projects } from "../data/projects";
+import Reveal from "../components/animations/Reveal";
+import SectionTitle from "../components/ui/SectionTitle";
+import ImageModal from "../components/ui/ImageModal";
+
+function ProjectDetailModal({ project, onClose, setActiveZoomImage }) {
+  if (!project) return null;
+
+  const projectImages = project.images && project.images.length > 0 ? project.images : (project.image ? [project.image] : []);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  return (
+    <AnimatePresence>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl p-6 md:p-12 flex items-center justify-center select-none"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.96, y: 15 }}
+          animate={{ scale: 1, y: 0 }}
+          exit={{ scale: 0.96, y: 15 }}
+          transition={{ type: "spring", damping: 28, stiffness: 200 }}
+          onClick={(e) => e.stopPropagation()}
+          className="w-full max-w-6xl bg-[#050816]/98 border border-cyan-500/20 rounded-2xl p-8 md:p-10 shadow-2xl shadow-cyan-950/40 font-sans text-gray-300 relative flex flex-col max-h-[85vh] overflow-hidden"
+        >
+          {/* Top Diagnostic Header Ribbon */}
+          <div className="flex items-center justify-between border-b border-white/5 pb-5 mb-8 shrink-0">
+            <div>
+              <span className="font-mono text-[10px] text-cyan-400 tracking-[0.3em] uppercase block mb-1">
+                PROJECT // DETAILED_ARCHITECTURAL_LOG
+              </span>
+              <div className="flex flex-wrap items-center gap-3">
+                <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight">{project.title}</h2>
+                
+                {/* Dynamic Architectural Status Identifier Tag */}
+                {project.status === "IN_PROGRESS" ? (
+                  <span className="font-mono text-[9px] text-amber-500 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded shadow-[0_0_10px_rgba(245,158,11,0.1)] font-bold tracking-wider uppercase">
+                    ⚡ IN_PROGRESS_VAL
+                  </span>
+                ) : (
+                  <span className="font-mono text-[9px] text-cyan-400 bg-cyan-400/10 border border-cyan-400/30 px-2 py-0.5 rounded font-bold tracking-wider uppercase">
+                    ✓ SYSTEM_READY
+                  </span>
+                )}
+              </div>
+            </div>
+            <button 
+              onClick={onClose} 
+              className="font-mono text-[10px] tracking-wider text-gray-400 hover:text-cyan-400 border border-white/10 bg-white/5 px-4 py-2 rounded transition-all cursor-pointer hover:border-cyan-400/40"
+            >
+              [ CLOSE_MODULE ]
+            </button>
+          </div>
+
+          {/* Internal Scrollable Content Body */}
+          <div className="flex-1 overflow-y-auto pr-2 space-y-8 custom-modal-scroll">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+              
+              {/* LEFT COLUMN: Project Information (7 Cols) */}
+              <div className="lg:col-span-7 space-y-6 text-[14px] leading-relaxed">
+                <section>
+                  <h4 className="font-mono text-[10px] text-gray-500 tracking-widest uppercase mb-2">[ 0x01 // OVERVIEW & PROBLEM STATEMENT ]</h4>
+                  <p className="text-gray-400 font-sans">{project.problem}</p>
+                </section>
+
+                <section>
+                  <h4 className="font-mono text-[10px] text-cyan-400 tracking-widest uppercase mb-2">[ 0x02 // PROPOSED SOLUTION & CIRCUITS ]</h4>
+                  <p className="text-slate-300 bg-cyan-950/10 border border-cyan-500/10 rounded-xl p-5 font-sans">
+                    {project.solution}
+                  </p>
+                </section>
+              </div>
+
+              {/* RIGHT COLUMN: Multi-Image Schematic Viewer Console (5 Cols) */}
+              <div className="lg:col-span-5 flex flex-col gap-4">
+                <h4 className="font-mono text-[10px] text-gray-500 tracking-widest uppercase">[ 0x03 // HARDWARE_SCHEMATICS, PHOTOS ]</h4>
+                
+                <div 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (projectImages && projectImages.length > 0) {
+                      setActiveZoomImage({ 
+                        src: projectImages[activeImageIndex], 
+                        alt: project.title,
+                        images: projectImages,
+                        index: activeImageIndex
+                      });
+                    }
+                  }}
+                  className="w-full h-60 rounded-xl bg-gradient-to-br from-slate-900 to-black border border-cyan-500/10 relative overflow-hidden flex items-center justify-center p-2 cursor-pointer group/img"
+                >
+                  <div className="absolute inset-0 bg-[linear-gradient(rgba(0,245,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(0,245,255,0.015)_1px,transparent_1px)] background-size-[20px_24px] pointer-events-none z-10" />
+                  
+                  {projectImages.length > 0 ? (
+                    <img 
+                      src={projectImages[activeImageIndex]} 
+                      alt="Active Schematic Frame" 
+                      className="w-full h-full object-contain opacity-85 group-hover/img:opacity-100 group-hover/img:scale-[1.01] transition-all duration-300 mix-blend-screen"
+                    />
+                  ) : (
+                    <span className="font-mono text-[10px] text-gray-700 tracking-[0.25em] uppercase">[ NO_SCHEMATIC_DATA ]</span>
+                  )}
+                  
+                  <div className="absolute bottom-3 right-3 bg-slate-900 border border-cyan-400/40 hover:border-cyan-400 px-2.5 py-1 rounded font-mono text-[9px] text-cyan-400 opacity-100 lg:opacity-0 lg:group-hover/img:opacity-100 transition-all duration-200 pointer-events-auto tracking-wider shadow-[0_0_8px_rgba(0,245,255,0.2)]">
+                    CLICK TO EXPAND
+                  </div>
+                </div>
+
+                {/* Interactive Thumbnail Ribbon Collection Strip */}
+                {projectImages.length > 1 && (
+                  <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none">
+                    {projectImages.map((img, idx) => (
+                      <button
+                        key={idx}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveImageIndex(idx);
+                        }}
+                        className={`w-16 h-11 rounded border flex-shrink-0 bg-black overflow-hidden p-0.5 transition-all cursor-pointer ${
+                          idx === activeImageIndex ? "border-cyan-400 shadow-[0_0_6px_rgba(0,245,255,0.3)]" : "border-white/5 opacity-40 hover:opacity-80"
+                        }`}
+                      >
+                        <img src={img} alt={`Thumb ${idx}`} className="w-full h-full object-cover mix-blend-screen" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* ── SECURE PRIVATE ACCELERATED EMBED PLAYBACK CHANNEL ── */}
+                {project.youtubeId && (
+                  <div className="mt-2 space-y-2">
+                    <h4 className="font-mono text-[10px] text-gray-500 tracking-widest uppercase">[ 0x04 // PROJECT_YOU_TUBE_VIDEO ]</h4>
+                    <div className="w-full h-44 rounded-xl border border-cyan-500/10 bg-black overflow-hidden relative shadow-inner">
+                      <iframe
+                        className="w-full h-full opacity-95 hover:opacity-100 transition-opacity duration-300"
+                        src={`https://www.youtube-nocookie.com/embed/${project.youtubeId}?rel=0&modestbranding=1&autoplay=0`}
+                        title="Project Simulation Video"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* LOWER EXPANDED PARAMETERS */}
+            <div className="border-t border-white/5 pt-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-black/30 border border-white/5 rounded-xl p-5 font-mono text-xs">
+                  <div className="text-gray-500 font-bold mb-2 tracking-wider uppercase">// IMPLEMENTATION_STACK</div>
+                  <div className="text-gray-400 mb-2"><span className="text-gray-600">ENVIRONMENT_REG:</span> {project.stack}</div>
+                  <div className="flex flex-wrap gap-1">
+                    {project.technologies.map(t => (
+                      <span key={t} className="text-[10px] text-gray-400 bg-white/5 px-2 py-0.5 rounded border border-white/5">{t}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-black/30 border border-white/5 rounded-xl p-5 font-mono text-xs">
+                  <div className="text-emerald-400 font-bold mb-2 tracking-wider uppercase">// SYSTEM_BENCHMARK_RESULTS</div>
+                  <div className="text-emerald-400/80 leading-relaxed"><span className="text-gray-600">OUTPUT_LOG:</span> {project.impact}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Fixed Footer Action Ribbon Tray */}
+          <div className="flex justify-end gap-4 border-t border-white/5 pt-5 mt-5 shrink-0">
+            {project.github !== "#" && (
+              <a 
+                href={project.github} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="px-6 py-2.5 bg-cyan-400 hover:bg-cyan-300 text-black font-mono text-xs font-bold rounded transition-all shadow-lg hover:shadow-cyan-400/10 cursor-pointer"
+              >
+                📥 FETCH_SOURCE_REPOS
+              </a>
+            )}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+export default function Projects() {
+  const [activeFilter, setActiveFilter] = useState("ALL");
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [activeZoomImage, setActiveZoomImage] = useState(null);
+  const filters = ["ALL", "VLSI", "AI HARDWARE", "EMBEDDED", "SECURITY", "IOT"];
+
+  const currentCollectionImages = useMemo(() => {
+    if (!selectedProject) return [];
+    return selectedProject.images && selectedProject.images.length > 0 
+      ? selectedProject.images 
+      : (selectedProject.image ? [selectedProject.image] : []);
+  }, [selectedProject]);
+
+  const filteredProjects = useMemo(() => {
+    if (activeFilter === "ALL") return projects;
+    return projects.filter(p => p.category.toLowerCase().includes(activeFilter.toLowerCase()));
+  }, [activeFilter]);
+
+  // Integrated Keyboard Tracking Engine Hooks
+  useEffect(() => {
+    if (!activeZoomImage || currentCollectionImages.length <= 1) return;
+
+    const handleKeyDown = (e) => {
+      const currentIndex = currentCollectionImages.indexOf(activeZoomImage.src);
+      if (currentIndex === -1) return;
+
+      if (e.key === "ArrowRight") {
+        const nextIdx = (currentIndex + 1) % currentCollectionImages.length;
+        setActiveZoomImage({ src: currentCollectionImages[nextIdx], alt: activeZoomImage.alt, images: currentCollectionImages, index: nextIdx });
+      }
+      if (e.key === "ArrowLeft") {
+        const prevIdx = (currentIndex - 1 + currentCollectionImages.length) % currentCollectionImages.length;
+        setActiveZoomImage({ src: currentCollectionImages[prevIdx], alt: activeZoomImage.alt, images: currentCollectionImages, index: prevIdx });
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeZoomImage, currentCollectionImages]);
+
+  // Mobile Device Touch Acceleration Trackers
+  const [touchStart, setTouchStart] = useState(0);
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!touchStart || !activeZoomImage || currentCollectionImages.length <= 1) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    const distance = touchStart - touchEnd;
+
+    const currentIndex = currentCollectionImages.indexOf(activeZoomImage.src);
+    if (currentIndex === -1) return;
+
+    if (distance > minSwipeDistance) {
+      const nextIdx = (currentIndex + 1) % currentCollectionImages.length;
+      setActiveZoomImage({ src: currentCollectionImages[nextIdx], alt: activeZoomImage.alt, images: currentCollectionImages, index: nextIdx });
+    } else if (distance < -minSwipeDistance) {
+      const prevIdx = (currentIndex - 1 + currentCollectionImages.length) % currentCollectionImages.length;
+      setActiveZoomImage({ src: currentCollectionImages[prevIdx], alt: activeZoomImage.alt, images: currentCollectionImages, index: prevIdx });
+    }
+  };
+
+  return (
+    <section id="projects" className="py-28 max-w-[1400px] mx-auto px-6 md:px-16 lg:px-24 relative z-10">
+      
+      {/* Upper Layout */}
+      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-12 pb-6 border-b border-white/5">
+        <SectionTitle
+          label="PROJECT ARCHIVE"
+          title="Project Database"
+          subtitle="Hardware designs, intelligent systems, and silicon-level innovations."
+        />
+
+        <div className="flex flex-wrap gap-2 lg:mb-14">
+          {filters.map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setActiveFilter(filter)}
+              className={`font-mono text-[11px] tracking-wider px-3.5 py-1.5 rounded transition-all duration-200 ${
+                activeFilter === filter
+                  ? "bg-cyan-400/10 border border-cyan-400 text-cyan-400 shadow-md shadow-cyan-400/5"
+                  : "bg-transparent border border-white/5 text-gray-500 hover:border-white/20 hover:text-gray-300"
+              }`}
+            >
+              {filter}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
+        <AnimatePresence mode="popLayout">
+          {filteredProjects.map((project, i) => (
+            <motion.div
+              layout
+              initial={{ opacity: 0, scale: 0.96 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.35 }}
+              viewport={{ once: true }}
+              key={project.title}
+              className="group border border-white/8 bg-gradient-to-b from-white/[0.03] to-transparent rounded-xl p-5 backdrop-blur-xl relative overflow-hidden flex flex-col justify-between w-full max-w-[400px] h-[520px]"
+              style={{ boxShadow: "0 12px 44px rgba(0,0,0,0.3)" }}
+            >
+              <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-32 h-16 bg-cyan-400/5 blur-xl group-hover:bg-cyan-400/10 transition-all duration-300" />
+
+              <div>
+                <div className="w-full h-44 rounded-lg bg-gradient-to-br from-slate-900 to-black border border-white/5 mb-4 relative overflow-hidden flex items-center justify-center group-hover:border-cyan-500/30 transition-all duration-300">
+                  <div className="absolute inset-0 bg-[linear-gradient(rgba(0,245,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(0,245,255,0.015)_1px,transparent_1px)] background-size-[14px_14px] z-10 pointer-events-none" />
+                  
+                  {project.image ? (
+                    <img 
+                      src={project.image} 
+                      alt={project.title} 
+                      className="w-full h-full object-cover opacity-60 group-hover:opacity-85 group-hover:scale-105 transition-all duration-500 filter contrast-125 brightness-95 mix-blend-screen"
+                    />
+                  ) : (
+                    <span className="font-mono text-[9px] text-gray-700 group-hover:text-cyan-400/40 tracking-widest transition-colors duration-300 uppercase">
+                      [ NO_SCHEMATIC_DATA ]
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-mono text-[9px] text-gray-500 tracking-wider uppercase">// {project.category}</span>
+                  
+                  {/* Dynamic Project Level Status Gauge Ribbon Badge */}
+                  <div className="flex items-center gap-1.5">
+                    {project.status === "IN_PROGRESS" ? (
+                      <>
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shadow-[0_0_8px_#f59e0b]" />
+                        <span className="font-mono text-[8px] text-amber-500 font-bold tracking-widest uppercase">IN PROGRESS</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 pulse-glow" />
+                        <span className="font-mono text-[8px] text-cyan-400 font-bold tracking-widest uppercase">RESEARCH PROTOTYPE</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <h3 className="text-base font-bold text-slate-200 tracking-tight group-hover:text-white transition-colors line-clamp-2 mb-2 min-h-[44px]">
+                  {project.title}
+                </h3>
+
+                <p className="text-gray-400 text-xs leading-relaxed line-clamp-3 mb-4 font-sans">
+                  {project.problem}
+                </p>
+              </div>
+
+              <div>
+                <div className="flex flex-wrap gap-1 mb-4">
+                  {project.technologies.slice(0, 3).map(tech => (
+                    <span key={tech} className="font-mono text-[9px] text-gray-400 border border-white/5 bg-slate-900/40 px-2 py-0.5 rounded">
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Grid operation system triggers */}
+                <div className="grid grid-cols-2 gap-2 font-mono text-[10px]">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if(project.image) {
+                        setActiveZoomImage({ 
+                          src: project.image, 
+                          alt: project.title, 
+                          images: project.images && project.images.length > 0 ? project.images : [project.image], 
+                          index: 0 
+                        });
+                      }
+                    }}
+                    disabled={!project.image}
+                    className={`w-full text-center py-2 border rounded transition-all ${
+                      project.image 
+                        ? "border-white/5 hover:border-cyan-400/30 text-gray-400 hover:text-cyan-400 cursor-pointer" 
+                        : "border-white/5 text-gray-700 cursor-not-allowed"
+                    }`}
+                  >
+                    {project.image ? "VIEW IMAGE" : "NO SCHEMATIC"}
+                  </button>
+
+                  <button 
+                    onClick={() => setSelectedProject(project)}
+                    className="w-full text-center py-2 border border-cyan-500/30 bg-cyan-400/5 text-cyan-400 rounded hover:bg-cyan-400/10 hover:border-cyan-400 transition-all font-bold tracking-wider cursor-pointer"
+                  >
+                    DETAILS
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {/* Full-Screen Documentation Page Modal */}
+      <ProjectDetailModal 
+        project={selectedProject} 
+        onClose={() => setSelectedProject(null)} 
+        setActiveZoomImage={setActiveZoomImage} 
+      />
+
+      {/* Full-Screen Image Lightbox Viewport Overlay */}
+      {activeZoomImage && (
+        <div 
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className="relative"
+        >
+          <ImageModal 
+            src={activeZoomImage.src} 
+            alt={activeZoomImage.alt} 
+            projectImages={activeZoomImage.images || [activeZoomImage.src]}
+            setActiveZoomImage={setActiveZoomImage}
+            onClose={() => setActiveZoomImage(null)} 
+          />
+        </div>
+      )}
+    </section>
+  );
+}],Research.jsx[import { achievements } from "../data/achievements";
+import Reveal from "../components/animations/Reveal";
+import SectionTitle from "../components/ui/SectionTitle";
+
+export default function Research() {
+  const researchPapers = achievements.filter((item) => item.type === "research");
+
+  return (
+    <section id="research" className="py-28 max-w-[1400px] mx-auto px-6 md:px-16 lg:px-24 relative z-10">
+      <SectionTitle
+        label="RESEARCH VAULT"
+        title="Research Vault"
+        subtitle="Innovation tracking and future publication vector logs targeting hardware design acceleration."
+      />
+
+      {/* Structured 2-Column Engineering Layout Map */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        
+        {/* LEFT COMPONENT COLUMN: Academic Abstract Cards (7 Cols) */}
+        <div className="lg:col-span-7 space-y-4">
+          {researchPapers.map((paper, i) => (
+            <Reveal key={paper.title} delay={i * 0.1}>
+              <div className="border border-white/5 bg-gradient-to-r from-white/[0.02] to-transparent backdrop-blur-xl rounded-xl p-5 relative overflow-hidden space-y-4">
+                <div className="absolute top-0 left-0 w-24 h-px bg-gradient-to-r from-cyan-400 to-transparent" />
+                
+                <div>
+                  <div className="flex items-center gap-3 mb-1">
+                    <span className="font-mono text-[9px] text-amber-400 bg-amber-400/5 border border-amber-400/20 px-2 py-0.5 rounded tracking-widest uppercase">
+                      // {paper.org} REFEREED
+                    </span>
+                    <span className="font-mono text-[9px] text-gray-600">YEAR: {paper.year}</span>
+                  </div>
+                  <h3 className="text-base font-bold text-slate-100 tracking-tight leading-snug">
+                    {paper.detail}
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-gray-400 border-t border-white/5 pt-3 font-sans">
+                  <div>
+                    <strong className="font-mono text-[9px] text-gray-600 uppercase tracking-widest block mb-1">[ RESEARCH PROBLEM ]</strong>
+                    <p className="leading-relaxed">Developing power-aware computer vision detection filters running on space-constrained edge nodes.</p>
+                  </div>
+                  <div>
+                    <strong className="font-mono text-[9px] text-cyan-400/70 uppercase tracking-widest block mb-1">[ CURRENT APPROACH ]</strong>
+                    <p className="leading-relaxed text-gray-300">Deploying hardware-accelerated regression arrays and custom sparse data channel weights.</p>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        {/* RIGHT COMPONENT COLUMN: Larger Featured Research Visualization Array (5 Cols) */}
+        <div className="lg:col-span-5 h-full min-h-[350px]">
+          <div className="w-full h-full border border-cyan-500/10 bg-slate-950/40 rounded-xl p-6 relative overflow-hidden flex flex-col justify-between backdrop-blur-xl">
+            {/* PCB Pattern Background Decorator Lines */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(0,245,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(0,245,255,0.01)_1px,transparent_1px)] background-size-[24px_24px] opacity-40 pointer-events-none" />
+            <div className="absolute top-0 right-0 w-24 h-24 border-r border-t border-cyan-400/10" />
+
+            <div className="space-y-4 relative z-10">
+              <span className="font-mono text-[9px] text-cyan-400 bg-cyan-400/5 border border-cyan-400/20 px-2,5 py-1 rounded tracking-widest uppercase inline-block">
+                ✦ ACTIVE RESEARCH NODE
+              </span>
+              <h3 className="text-lg font-bold text-white tracking-tight leading-tight">
+                Low Power AI Accelerator Optimization Engine
+              </h3>
+              <p className="text-gray-400 text-xs leading-relaxed font-sans">
+                Developing neural computation architectures that eliminate switching redundancies inside multi-axis MAC arithmetic arrays. Aiming for low latency with minimal micro-architectural area footprint.
+              </p>
+            </div>
+
+            <div className="bg-black/50 border border-white/5 rounded-lg p-4 font-mono text-[10px] text-gray-500 space-y-1 relative z-10">
+              <div className="text-cyan-400 font-bold mb-1.5 tracking-wider">// SCHEMATIC_VAULT_INDEX</div>
+              <div><span className="text-gray-700">TARGET_CORES:</span> DI_DISEASE_DETECTION_CORE</div>
+              <div><span className="text-gray-700">STATUS:</span> IN_SUBMISSION_VAL</div>
+              <div><span className="text-gray-700">DOCUMENTATION:</span> RESEARCH_PAPER_STYLE_LAYOUT</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  );
+}],Resume.jsx[],Skills.jsx[import { skills } from "../data/skills";
+import Reveal from "../components/animations/Reveal";
+import GlassCard from "../components/ui/GlassCard";
+import SectionTitle from "../components/ui/SectionTitle";
+import { motion } from "framer-motion";
+
+const iconMap = {
+  chip:  "◈",
+  cpu:   "◉",
+  brain: "◆",
+  code:  "◇",
+  tools: "◎",
+};
+
+export default function Skills() {
+  return (
+    <section
+      id="skills"
+      style={{
+        padding: "7rem 2.5rem",
+        maxWidth: "1280px",
+        margin: "0 auto",
+      }}
+    >
+      <SectionTitle
+        label="Expertise"
+        title="Technical Arsenal"
+        subtitle="Core competencies across hardware design, embedded systems, AI development, and engineering tools."
+      />
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        {skills.map((skill, i) => (
+          <Reveal key={skill.category} delay={i * 0.08}>
+            <motion.div
+              whileHover={{
+                y: -5,
+                boxShadow: `0 20px 50px ${skill.color}12, 0 0 1px ${skill.color}30`,
+              }}
+              transition={{ type: "spring", stiffness: 280, damping: 24 }}
+              className="h-full rounded-2xl p-5 transition-all duration-300"
+              style={{
+                background: "rgba(255,255,255,0.035)",
+                border: `1px solid rgba(255,255,255,0.08)`,
+                backdropFilter: "blur(12px)",
+              }}
+            >
+              {/* Header */}
+              <div className="flex items-center gap-2.5 mb-5">
+                <span style={{ color: skill.color, fontSize: "18px", lineHeight: 1 }}>
+                  {iconMap[skill.icon] || "◈"}
+                </span>
+                <h3
+                  className="font-mono font-bold tracking-wide text-[11px] leading-tight"
+                  style={{ color: skill.color }}
+                >
+                  {skill.category}
+                </h3>
+              </div>
+
+              {/* Skill list */}
+              <div className="flex flex-col gap-1.5">
+                {skill.items.map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-center gap-2 group"
+                  >
+                    <span
+                      className="w-1 h-1 rounded-full flex-shrink-0 transition-all duration-300 group-hover:scale-125"
+                      style={{ background: skill.color, opacity: 0.5 }}
+                    />
+                    <span
+                      className="font-mono text-[11px] text-gray-400 group-hover:text-gray-200 transition-colors duration-200"
+                    >
+                      {item}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Bottom accent */}
+              <div
+                className="mt-5 h-px w-full rounded"
+                style={{
+                  background: `linear-gradient(to right, ${skill.color}30, transparent)`,
+                }}
+              />
+            </motion.div>
+          </Reveal>
+        ))}
+      </div>
+
+      {/* Tools ribbon */}
+      <Reveal delay={0.45}>
+        <div
+          className="mt-8 rounded-2xl p-5 flex flex-wrap gap-2.5 items-center"
+          style={{
+            background: "rgba(255,255,255,0.025)",
+            border: "1px solid rgba(255,255,255,0.07)",
+          }}
+        >
+          <span className="font-mono text-[10px] text-gray-600 tracking-[0.3em] uppercase mr-2">
+            // Dev Environment
+          </span>
+          {[
+            "Xilinx Vivado", "ModelSim", "MATLAB", "LTSpice",
+            "VS Code", "Git", "Node-RED", "Arduino IDE",
+            "Jupyter", "Streamlit",
+          ].map((tool) => (
+            <motion.span
+              key={tool}
+              whileHover={{ borderColor: "rgba(0,245,255,0.4)", color: "#00f5ff" }}
+              className="text-[11px] px-3 py-1.5 rounded-full border border-white/8 text-gray-500 font-mono transition-colors duration-300 cursor-default"
+              style={{ background: "rgba(255,255,255,0.02)" }}
+            >
+              {tool}
+            </motion.span>
+          ))}
+        </div>
+      </Reveal>
+    </section>
+  );
+}],
+#####
+
+C:\Users\ak272\Desktop\ak-portfolio\silicon-portfolio\src\styles
+
+global.css[@import "tailwindcss";
+
+:root {
+  --bg: #050816;
+  --primary: #00f5ff;
+  --gold: #f59e0b;
+  --secondary: #7c3aed;
+  --accent: #22c55e;
+  --glass: rgba(255, 255, 255, 0.06);
+  --border-glass: rgba(255, 255, 255, 0.12);
+  --text-muted: #94a3b8;
+
+  /* Typography system */
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Inter', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+}
+
+* { 
+  margin: 0; 
+  padding: 0; 
+  box-sizing: border-box; 
+}
+
+/* ══════════════════════════════════════════
+   ADVANCED HARDWARE SMOOTH SCROLL ACCELERATION
+══════════════════════════════════════════ */
+html { 
+  scroll-behavior: smooth;
+  /* Multi-axis deceleration curves to make shorter scroll actions glide slightly further */
+  scroll-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+body {
+  background: #050816;
+  color: white;
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  /* Hardware-accelerated rendering optimization surfaces */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
+
+.font-display { font-family: var(--font-display); }
+.font-mono    { font-family: var(--font-mono) !important; }
+
+/* ══════════════════════════════════════════
+   PRECISE VLSI IC PACKAGING SCROLLBAR 
+   (Short Block / Hardware Diagnostic Slider)
+══════════════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 8px; /* Standard physical trace width */
+}
+
+::-webkit-scrollbar-track {
+  /* Deep matte dark background representing a clean, un-routed PCB substrate layer */
+  background: #030611; 
+  /* Top and bottom margin padding clamps the scrollbar path so it never touches the screen edges */
+  margin-top: 15vh;
+  margin-bottom: 15vh;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  /* 🛠️ HARDWARE ENGINE INTEGRATION:
+     By adding a thick transparent top/bottom border paired with padding-box clipping, 
+     we cleanly chop down the height of the thumb, forcing it to remain a short, stable block 
+     modeled after an IC Chip Package / Test Slider instead of stretching full length. */
+  background: #1e293b; /* Industrial Slate Silicon Base */
+  background-clip: padding-box;
+  border-top: 40px solid transparent;    /* Forces the thumb length to trim down tightly */
+  border-bottom: 40px solid transparent; /* Forces the thumb length to trim down tightly */
+  border-left: 2px solid transparent;
+  border-right: 2px solid transparent;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+/* Simulated logic-gate activation when users hover over or grab the tracker */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary); /* Instantly highlights in clear Logic Analyzer Cyan */
+  border-top: 40px solid transparent;    /* Preserves the short block length constraints */
+  border-bottom: 40px solid transparent; /* Preserves the short block length constraints */
+  box-shadow: 0 0 10px var(--primary);
+}
+
+::selection { background: #00f5ff22; color: #00f5ff; }
+
+/* Atomic Glassmorphism Foundation Surfaces */
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glass);
+  border-radius: 16px;
+}
+
+/* Premium Semiconductor Gradient Elements */
+.gradient-text {
+  background: linear-gradient(110deg, #00f5ff 0%, #3b82f6 45%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-purple {
+  background: linear-gradient(135deg, #7c3aed, #00f5ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.section-padding { padding: 5rem 2.5rem; }
+
+.glow-cyan { box-shadow: 0 0 30px rgba(0,245,255,0.15); }
+.glow-gold { box-shadow: 0 0 30px rgba(245,158,11,0.15); }
+
+/* ══════════════════════════════════════════
+   USED HARDWARE CORE SYSTEM ANIMATIONS
+══════════════════════════════════════════ */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+.pulse-glow { animation: pulseGlow 2.5s ease-in-out infinite; }
+
+@keyframes traceAnim {
+  0% { stroke-dashoffset: 600; opacity: 0; }
+  20% { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0.4; }
+}
+
+@keyframes ringRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.ring-rotate { animation: ringRotate 8s linear infinite; }
+.ring-rotate-reverse { animation: ringRotate 12s linear infinite reverse; }
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(0,245,255,0.1), transparent);
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+}
+
+/* ══════════════════════════════════════════
+   SYSTEM HARDWARE INTERACTIVE CURSOR HINTS
+══════════════════════════════════════════ */
+.cursor-dot {
+  width: 8px; height: 8px;
+  background: #00f5ff;
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.1s;
+  box-shadow: 0 0 10px #00f5ff, 0 0 20px #00f5ff44;
+}
+.cursor-ring {
+  width: 32px; height: 32px;
+  border: 1px solid #00f5ff66;
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  transition: all 0.12s ease-out;
+}],
+
+C:\Users\ak272\Desktop\ak-portfolio\silicon-portfolio\src\App.jsx[import { useState, useEffect } from "react"; // Added React hooks for global overlay sync
+import CursorTrail from "./components/ui/CursorTrail";
+import ParticleField from "./components/ui/ParticleField";
+import PCBBackground from "./components/ui/PCBBackground";
+import Navbar from "./components/layout/Navbar";
+import Footer from "./components/layout/Footer";
+import Hero from "./sections/Hero";
+import About from "./sections/About";
+import Skills from "./sections/Skills";
+import Projects from "./sections/Projects";
+import Research from "./sections/Research";
+import Achievements from "./sections/Achievements";
+
+// ── IMPORT YOUR FINAL PHASE 4 SECTIONS SEAMLESSLY
+import Certifications from "./sections/Certifications";
+import Contact from "./sections/Contact";
+import ImageModal from "./components/ui/ImageModal"; // Centralizing image zoom modal at root context
+
+function SectionDivider() {
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "1px",
+        background: "linear-gradient(to right, transparent, rgba(0,245,255,0.1), rgba(245,158,11,0.06), transparent)",
+        margin: "0 auto",
+      }}
+    />
+  );
+}
+
+function App() {
+  // ── CORE GLOBAL LIGHTBOX STORAGE HOOK ──
+  const [activeZoomImage, setActiveZoomImage] = useState(null);
+
+  // Keyboard Event Listener Matrix: Handles Arrow Keys for multi-frame switching globally
+  useEffect(() => {
+    if (!activeZoomImage || !activeZoomImage.images || activeZoomImage.images.length <= 1) return;
+
+    const handleKeyDown = (e) => {
+      const { images, index, alt } = activeZoomImage;
+
+      if (e.key === "ArrowRight") {
+        const nextIdx = (index + 1) % images.length;
+        setActiveZoomImage({ src: images[nextIdx], alt, images, index: nextIdx });
+      }
+      if (e.key === "ArrowLeft") {
+        const prevIdx = (index - 1 + images.length) % images.length;
+        setActiveZoomImage({ src: images[prevIdx], alt, images, index: prevIdx });
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeZoomImage]);
+
+  // Mobile Device Touch Swipe Vector Translators
+  const [touchStart, setTouchStart] = useState(0);
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!touchStart || !activeZoomImage || !activeZoomImage.images || activeZoomImage.images.length <= 1) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    const distance = touchStart - touchEnd;
+    const { images, index, alt } = activeZoomImage;
+
+    if (distance > minSwipeDistance) {
+      // Swipe Left Trigger -> Show Next Image
+      const nextIdx = (index + 1) % images.length;
+      setActiveZoomImage({ src: images[nextIdx], alt, images, index: nextIdx });
+    } else if (distance < -minSwipeDistance) {
+      // Swipe Right Trigger -> Show Previous Image
+      const prevIdx = (index - 1 + images.length) % images.length;
+      setActiveZoomImage({ src: images[prevIdx], alt, images, index: prevIdx });
+    }
+  };
+
+  return (
+    <div className="relative min-h-screen">
+      <CursorTrail />
+      <ParticleField />
+      <PCBBackground />
+
+      <Navbar />
+
+      <main className="relative z-10">
+        <Hero />
+        <SectionDivider />
+        <About />
+        <SectionDivider />
+        <Skills />
+        <SectionDivider />
+        
+        {/* Pass down the central state manager down into your projects archive component block */}
+        <Projects activeZoomImage={activeZoomImage} setActiveZoomImage={setActiveZoomImage} />
+        
+        <SectionDivider />
+        <Research />
+        <SectionDivider />
+        <Achievements />
+        
+        {/* ── PHASE 4 PORT PORTALS INJECTION ── */}
+        <SectionDivider />
+        {/* Pass down the central zoom state manager to unleash full screen horizontal credential overlays */}
+        <Certifications setActiveZoomImage={setActiveZoomImage} />
+        
+        <SectionDivider />
+        <Contact />
+      </main>
+
+      <Footer />
+
+      {/* ── CENTRAL GLOBAL APPLICATION LEVEL VIEWPORT MATRIX ── */}
+      {activeZoomImage && (
+        <div 
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className="relative"
+        >
+          <ImageModal 
+            src={activeZoomImage.src} 
+            alt={activeZoomImage.alt} 
+            projectImages={activeZoomImage.images || [activeZoomImage.src]}
+            setActiveZoomImage={setActiveZoomImage}
+            onClose={() => setActiveZoomImage(null)} 
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;
+],tailwind.config.js[/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}],vite.config.js[import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+    assetsInclude: ['**/*.glb', '**/*.gltf'],
+})]
+C:\Users\ak272\Desktop\ak-portfolio\silicon-portfolio\index.html[ <!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Anandha Krishnan P — VLSI Design, RTL Engineering, FPGA, Embedded Systems & AI Hardware Portfolio" />
+    <meta name="keywords" content="VLSI, RTL Design, FPGA, Embedded Systems, AI Hardware, ECE Engineer" />
+    <title>Anandha Krishnan P | Silicon Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>]
+ 
+}
