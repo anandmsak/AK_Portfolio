@@ -1,0 +1,217 @@
+@import "tailwindcss";
+
+:root {
+  /* Global Dark-Viewport Surface Elements */
+  --bg-primary: #050a18;   /* Page deep background substrate */
+  --bg-card: #070b19;      /* Standard card base layout geometry */
+  --bg-elevated: #0d1526;  /* High-contrast modal overlay blocks */
+  
+  /* Verification Architecture Color Semantics */
+  --cyan: #00c8ff;         /* Verification primary active logical analyzer track */
+  --purple: #7c3aed;       /* Research positioning and methodology accents */
+  --amber: #f59e0b;        /* System in-progress / hardware checking warning */
+  --green: #10b981;        /* ASSERTION: PASS / 100% Coverage Closure certified */
+  --red: #ef4444;          /* ASSERTION: FAIL / Error trace log fault detected */
+  
+  /* Text Transparency Fields */
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+
+  /* Typographic Hierarchy Declarations */
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Inter', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+}
+
+* { 
+  margin: 0; 
+  padding: 0; 
+  box-sizing: border-box; 
+}
+
+/* ══════════════════════════════════════════
+   ADVANCED HARDWARE SMOOTH SCROLL ACCELERATION
+══════════════════════════════════════════ */
+html { 
+  scroll-behavior: smooth;
+  scroll-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+  background-color: var(--bg-primary);
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Structural Header Typographic Constraints */
+h1, h2, .font-display { 
+  font-family: var(--font-display); 
+  font-weight: 700;
+}
+
+p, span, div, text, label {
+  font-family: var(--font-body);
+}
+
+.font-mono { 
+  font-family: var(--font-mono) !important; 
+}
+
+/* ══════════════════════════════════════════
+   PRECISE VLSI IC PACKAGING SCROLLBAR 
+══════════════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #030611; 
+  margin-top: 12vh;
+  margin-bottom: 12vh;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  background-clip: padding-box;
+  border-top: 32px solid transparent;    
+  border-bottom: 32px solid transparent; 
+  border-left: 2px solid transparent;
+  border-right: 2px solid transparent;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cyan);
+  border-top: 32px solid transparent;    
+  border-bottom: 32px solid transparent; 
+}
+
+::selection { 
+  background: rgba(0, 200, 255, 0.15); 
+  color: var(--cyan); 
+}
+
+/* High-Density Layout Surfaces */
+.bg-card {
+  background-color: var(--bg-card);
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+/* Premium Silicon Telemetry Gradients */
+.gradient-text {
+  background: linear-gradient(110deg, var(--cyan) 0%, #3b82f6 45%, var(--purple) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-pass {
+  background: linear-gradient(135deg, var(--cyan), var(--green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.pulse-glow { 
+  animation: pulseGlow 2.5s ease-in-out infinite; 
+}
+
+/* ══════════════════════════════════════════
+   SUBTLE WAVEFORM BACKPLANE ANIMATION LOOPS
+══════════════════════════════════════════ */
+@keyframes ambientWaveform {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.waveform-bg-track {
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: 1;
+  animation: ambientWaveform 24s linear infinite;
+  background-repeat: repeat-x;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+@keyframes ringRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Custom Scroll Handling for Engineering Dialog Modals */
+.custom-modal-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-modal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-modal-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+}
+
+/* Add this to the end of silicon-portfolio/src/styles/globals.css */
+@keyframes blob-bounce {
+  0% {
+    transform: translate(-50%, -50%) translate3d(0, 0, 0);
+  }
+  25% {
+    transform: translate(-50%, -50%) translate3d(40px, -40px, 0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translate3d(40px, 40px, 0);
+  }
+  75% {
+    transform: translate(-50%, -50%) translate3d(-40px, 40px, 0);
+  }
+  100% {
+    transform: translate(-50%, -50%) translate3d(0, 0, 0);
+  }
+}
+@keyframes blob-bounce {
+  0% {
+    transform: translate(-50%, -50%) translate3d(0, 0, 0);
+  }
+  25% {
+    transform: translate(-50%, -50%) translate3d(30px, -30px, 0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translate3d(30px, 30px, 0);
+  }
+  75% {
+    transform: translate(-50%, -50%) translate3d(-30px, 30px, 0);
+  }
+  100% {
+    transform: translate(-50%, -50%) translate3d(0, 0, 0);
+  }
+}
+/* Add this loop engine to the end of silicon-portfolio/src/styles/globals.css */
+@keyframes grid-move {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 24px 24px;
+  }
+}

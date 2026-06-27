@@ -1,0 +1,12 @@
+
+git init
+git add.
+git commit -m "Stage 1 - Initial commit with proper .gitignore"                                                    
+git config --global user.name "anandhperumal"         
+git config --global user.email "anandhperumal27@gmail.com"
+gut remote add origin  https://github.com/anandmsak/ak-folio
+git branch -M main
+git push -u origin main
+git branch stage2
+git branch
+git checkout stage2
